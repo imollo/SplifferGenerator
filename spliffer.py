@@ -21,10 +21,7 @@ class Spliffer:
         stt can be either a tuple (awalipy.stt, name)
           or merely awalipy.stt
         """
-        if isinstance(stt,tuple):
-            stt_0 = stt_0[0]
-        elif isinstance(stt,str):
-            stt = self._find_stt_from_name(stt)
+        stt = self._find_stt_id_from_stt(stt)
         self._states.pop(stt)
         self._A.del_state(stt)
          # awalipy.del_state gets rid of all transitions for us
@@ -33,21 +30,37 @@ class Spliffer:
         return self._states
     
     def set_initial(self,stt):
-        if isinstance(stt,tuple):
-            stt = stt[0]
-        elif isinstance(stt,str):
-            stt = self._find_stt_from_name(stt)
-
+        stt = self._find_stt_id_from_stt(stt)
         self._A.set_initial(stt)
 
+    def initial_states(self,with_names=False):
+        if with_names:
+            to_treat = self._A.initial_states()
+            return [(stt,self._states[stt]) if not self._states[stt]=="" else stt 
+                for stt in to_treat]
+        else:
+            return self._A.initial_states()
+    
+    def is_initial(self,stt):
+        stt = self._find_stt_id_from_stt(stt)
+        return stt in self._A.initial_states()
+
     def set_final(self,stt):
-        if isinstance(stt,tuple):
-            stt = stt[0]
-        elif isinstance(stt,str):
-            stt = self._find_stt_from_name(stt)
-            
+        stt = self._find_stt_id_from_stt(stt)
         self._A.set_final(stt)
     
+    def final_states(self, with_names=False):
+        if with_names:
+            to_treat = self._A.final_states()
+            return [(stt,self._states[stt]) if not self._states[stt]=="" else stt 
+                    for stt in to_treat]
+        else:
+            return self._A.final_states()
+    
+    def is_final(self,stt):
+        stt = self._find_stt_id_from_stt(stt)
+        return stt in self._A.final_states()
+
     def set_transition(self, stt_0,stt_1,ch,pos):
         """
         Usage: Spliffer.set.transition(self,stt_0,stt_1,ch,pos)
@@ -57,15 +70,8 @@ class Spliffer:
         ch is the character of the transition
         pos can be either 'l', 'L', 'r', 'R'         
         """
-        if isinstance(stt_0,tuple):
-            stt_0 = stt_0[0]
-        elif isinstance(stt_0,str):
-            stt_0 = self._find_stt_from_name(stt_0)
-
-        if isinstance(stt_1,tuple):
-            stt_1 = stt_1[0]
-        elif isinstance(stt_1,str):
-            stt_1 = self._find_stt_from_name(stt_1)
+        stt_0 = self._find_stt_id_from_stt(stt_0)
+        stt_1 = self._find_stt_id_from_stt(stt_1)
 
         if pos in ['l','L']:
             self._A.set_transition(stt_0,stt_1,[ch,"",ch])
@@ -83,9 +89,54 @@ class Spliffer:
     def del_transition(self,tr):
         self.A.del_transition(tr)
 
-    def accepts(self,
+    def predecessors(self,stt,label=None):
+        stt = self._find_stt_id_from_stt(stt)
+        return [(sttt,self._states[sttt]) if not self._states[sttt]=="" else sttt 
+                 for sttt in self._A.predecessors(stt,label)]
 
-    def _find_stt_from_name(self,name):
+    def successors(self,stt,label=None):
+        stt = self._find_stt_id_from_stt(stt)
+        return [(sttt,self._states[sttt]) if not self._states[sttt]=="" else sttt 
+                 for sttt in self._A.successors(stt,label)]
+
+
+    def accepts(self,shuf):
+        """
+        Takes an instance shuf of shuffle.Shuffle and
+        decides whether there's a succesful run 
+        with those labels in the spliffer.
+        """
+        to_treat = self.initial_states()
+        for i in to_treat:
+            b = self.accepts_from_stt(i,shuf)
+            if b:
+                return b
+        return False
+    
+    def accepts_from_stt(self,stt,shuf):
+        """
+        Takes an instance shuf of shuffle.Shuffle and
+        decides whether there's a succesful run 
+        with those labels in the spliffer starting from
+        state stt.
+        """
+        stt = self._find_stt_id_from_stt(stt)
+        if len(shuf) == 0:
+            return True if self.is_final(stt) else False
+        else:
+            to_treat = self.successors(stt,label=shuf.shuf()[0].val)
+            for s in to_treat:
+                b = self.accepts_from_stt(s,shuf[1:])
+                if b:
+                    return b
+            return False
+
+
+    def _find_stt_id_from_name(self,name):
+        """
+        Auxiliary function which returns the number id
+        of a spliffer state from its name.
+        """
         stt = -1
         for key in self._states.keys():
             if self._states[key]==name:
@@ -95,8 +146,25 @@ class Spliffer:
             return stt
         else:
             raise ValueError(
-                f"name does not match any state of Spliffer"
+                "name does not match any state of Spliffer"
             )
+        
+    def _find_stt_id_from_stt(self,stt):
+        """
+        Auxiliary function which returns the number id
+        of a spliffer state no matter the input format of that state.
+        This is necessary as states can be called in the following ways
+        depending on context:
+        * (stt_id,stt_name)
+        * stt_id
+        * stt_name
+        """
+        
+        if isinstance(stt,tuple):
+            stt = stt[0]
+        elif isinstance(stt,str):
+            stt = self._find_stt_id_from_name(stt)
+        return stt
 
     def display(self, horizontal=True):
         self._A.display(horizontal)

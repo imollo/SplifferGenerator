@@ -32,3 +32,8 @@ print(N_ref,N_new_new_ref,N_right_ref)
 D = diligent_spliffer(l,r,s)
 
 D.display()
+
+L_l = ["aabb", "aabb", "ababab", "aabbaabb"]
+L_r = ["ba", "bababababa", "baba", "bababa"]
+L_s = ["ab","ababababababab", "ababababab", "ababababababab"]
+L_b = [True,True,False,True]
