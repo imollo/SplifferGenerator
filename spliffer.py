@@ -83,6 +83,8 @@ class Spliffer:
     def del_transition(self,tr):
         self.A.del_transition(tr)
 
+    def accepts(self,
+
     def _find_stt_from_name(self,name):
         stt = -1
         for key in self._states.keys():
@@ -98,3 +100,4 @@ class Spliffer:
 
     def display(self, horizontal=True):
         self._A.display(horizontal)
+

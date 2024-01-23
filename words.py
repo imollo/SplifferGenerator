@@ -6,8 +6,7 @@ def word_to_primitive(w):
         
 def is_star_of(w,p):
     """
-    Returns True if and only if w can be written as a concatenation
-    of copies of p
+    Returns True if and only if w can be written as a concatenation of copies of p
     """
     n = len(w)    
     if n<len(p) or not n % len(p) == 0:
@@ -29,7 +28,10 @@ def quick_sort(w):
         return quick_sort(w_less)+w_mid+quick_sort(w_great)
 
 def nub(w):
-    #returns alphabet of a given word
+    """
+    Given a word w, it returns the minimal
+    alphabet A such that w is in A*
+    """
     s = quick_sort(w)
     try:
         alph =s[0]
@@ -41,10 +43,10 @@ def nub(w):
             alph=alph+c
     return alph
 
-def is_prefix(w1,w2):
-    n = len(w1)
-    m = len(w2)
-    if (n>m):
-        return False
-    else:
-        return w1==w2[0:n] 
+#def is_prefix(w1,w2):
+    #n = len(w1)
+    #m = len(w2)
+    #if (n>m):
+        #return False
+    #else:
+        #return w1==w2[0:n]
