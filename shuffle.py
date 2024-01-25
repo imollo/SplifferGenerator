@@ -47,12 +47,26 @@ class Shuffle:
         return S
 
     def mix_in(self,at):
+        """
+        Adds Atom at the end.
+        """
         self._s.append(at)
         if at.pos in ['l','L']:
             self._v[0]+=at.ch
         elif at.pos in ['r','R']:
             self._v[1]+=at.ch
         self._v[2]+=at.ch
+
+    def mix_beneath(self,at):
+        """
+        Adds Atom at the beginning.
+        """
+        self._s.insert(0,at)
+        if at.pos in ['l','L']:
+            self._v[0]=at.ch+self._v[0]
+        elif at.pos in ['r','R']:
+            self._v[1]=at.ch+self._v[1]
+        self._v[2]=at.ch+self._v[2]
 
     def pop(self):
         a = self._s.pop()
@@ -68,8 +82,8 @@ class Shuffle:
     def val(self):
         return self._v
     
-    # I think this works but I didn't need it    
-"""     def pop_first(self):
+"""  # I think this works but I didn't need it    
+     def pop_first(self):
         if len(self._s)==0:
             raise IndexError(
                 "shuffle is empty"
@@ -83,9 +97,32 @@ class Shuffle:
         self._v[2] = self._v[2][1:]
  """
 
+class ShuffleError(BaseException):
+    pass
+
 def all_possible_shuffles(l,r,s):
     """
     Given three words l,r,s it returns a list of all
     possible Shuffles such that their values are (l,r,s)
     """
-    pass
+    if not len(l)+len(r)==len(s):
+        raise ShuffleError(
+            f"the given arguments don't make up a valid shuffle"
+        )
+    
+    if len(s)==0:
+        S = Shuffle()
+        return [S]
+    else:
+        res = []
+        if len(l)>0 and l[0] == s[0]:
+            res.extend([S.mix_beneath(Atom(l[0],'l')) 
+                        for S in all_possible_shuffles(l[1:],r,s[1:])])
+
+        if len(r)>0 and r[0] == s[0]:
+            res.extend([S.mix_beneath(Atom(r[0],'r')) 
+                        for S in all_possible_shuffles(l,r[1:],s[1:])])
+
+
+        return res
+     
