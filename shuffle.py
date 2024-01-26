@@ -1,3 +1,5 @@
+import words #necessary for words.nub
+
 class Atom:
     def __init__(self,ch,pos):
         if not isinstance(pos,str):
@@ -9,8 +11,17 @@ class Atom:
                 "pos should be 'l' or 'r'"
             )
         self.ch  = ch
-        self.pos = pos
+        self.pos = 'l' if pos in ['l','L'] else 'r'
         self.val = [ch,"",ch] if pos in ['l','L'] else ["",ch,ch]
+
+    def __str__(self):
+        return str(self.val)
+    
+    def __repr__(self):
+        return f"Atom: ({self.ch},{self.pos})"
+
+    def __eq__(self,other):
+        return self.ch==other.ch and self.pos==other.pos
 
     @staticmethod
     def concatenate(L):
@@ -24,6 +35,27 @@ class Atom:
             res[1] += at.val[1]
             res[2] += at.val[2]
         return res
+    
+    @staticmethod
+    def alph_to_atoms(alph):
+        """
+        Takes an alphabet string and returns a dictionary
+        containing all possible atoms for that alphabet.
+
+        For each character ch in the alphabet and each position
+        pos in {'l','r'}, the key for obtaining Atom(ch,pos) from
+        the dictionary is <ch_pos>. For instance,
+        alph_to_atoms("abcd")["b_l"] returns Atom('b','l').   
+        """
+        alph = words.nub(alph) #removes duplicates
+        d = {}
+        for ch in alph:
+            key_l = ch+"_l"
+            key_r = ch+"_r"
+            d[key_l] = Atom(ch,'l')
+            d[key_r] = Atom(ch,'r')
+        return d
+
 
 class Shuffle:
     def __init__(self):
@@ -45,6 +77,25 @@ class Shuffle:
             )
         S._v = Atom.concatenate(S._s)
         return S
+    
+    def __repr__(self):
+        return self._s.__repr__()
+
+    def __str__(self):
+        l = [at.val for at in self._s]
+        return str(l)
+
+    def __eq__(self,other):
+        return self._s==other._s and self._v==other._v
+
+    """
+    # This doesn't appear to be working? 
+    def __copy__(self):
+        copy_instance = Shuffle()
+        copy_instance._s = self._s
+        copy_instance._v = self._v
+        return copy_instance 
+    """
 
     def mix_in(self,at):
         """
@@ -75,6 +126,7 @@ class Shuffle:
             self._v[0] = self._v[0][:-1]
         elif a.pos in ['r','R']:
             self._v[1] = self._v[1][:-1]
+        return a
 
     def shuf(self):
         return self._s
@@ -82,6 +134,18 @@ class Shuffle:
     def val(self):
         return self._v
     
+    def simply_commutes_with(self,other):
+        """
+        Returns True if self and other have values
+        (w,"",w) and ("",w,w)
+        for some word w. 
+        """
+        b0 = self._v[0]==other._v[1]
+        b1 = self._v[1]==other._v[0]
+        b2 = self._v[2]==other._v[2]
+        b3 = (self._v[0]=="" or self._v[1]=="")
+        return (b0 and b1 and b2 and b3)
+
 """  # I think this works but I didn't need it    
      def pop_first(self):
         if len(self._s)==0:
@@ -116,13 +180,52 @@ def all_possible_shuffles(l,r,s):
     else:
         res = []
         if len(l)>0 and l[0] == s[0]:
-            res.extend([S.mix_beneath(Atom(l[0],'l')) 
-                        for S in all_possible_shuffles(l[1:],r,s[1:])])
+            L = all_possible_shuffles(l[1:],r,s[1:])
+            for S in L:
+                S.mix_beneath(Atom(l[0],'l'))
+                res.append(S)
 
         if len(r)>0 and r[0] == s[0]:
-            res.extend([S.mix_beneath(Atom(r[0],'r')) 
-                        for S in all_possible_shuffles(l,r[1:],s[1:])])
-
+            L = all_possible_shuffles(l,r[1:],s[1:])
+            for S in L:
+                S.mix_beneath(Atom(r[0],'r'))
+                res.append(S)
 
         return res
-     
+    
+def all_simple_commutations(S):
+    """
+    Takes a Shuffle S and returns a list of all possible Shuffles
+    arising from a single simple commutation of sub-shuffles of S.
+    """
+    res = [S]
+    
+    if len(S) == 0:
+        return res
+    #We may assume S is non-empty
+
+    switches = [0]
+    switches.extend([i for i in range(1,len(S)) 
+                     if S.shuf()[i].pos != S.shuf()[i-1].pos])
+    sub_shufs = [S[switches[i-1]:switches[i]] for i in range(1,len(switches))]
+    sub_shufs.append(S[switches[-1]:])
+    
+    for i in range(1,len(sub_shufs)):
+        sub = sub_shufs[i]
+        sub_p = sub_shufs[i-1]
+        n = min(len(sub),len(sub_p))
+        
+        for k in range(1,n+1):
+            if sub[:k].val()[2]==sub_p[-k:].val()[2]:
+                #This should be replaced with T = S.copy() when I learn how to do it
+                T = Shuffle()
+                T._s = S.shuf().copy()
+                T._v = Atom.concatenate(T._s)
+                ####
+                T.shuf()[switches[i]-k:switches[i]]=sub[:k].shuf()
+                T.shuf()[switches[i]:switches[i]+k]=sub_p[-k:].shuf()
+                # we don't need to change the value as this operation preserves it
+                res.append(T)
+
+    return res
+

@@ -62,3 +62,7 @@ print(
 print(
     f"the answer is {S.accepts(N)}"
 )
+
+D = diligent_spliffer("aaba","aaab","aaba")
+D.trim()
+D.display()

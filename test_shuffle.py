@@ -1,4 +1,4 @@
-from shuffle import Atom, Shuffle, ShuffleError, all_possible_shuffles
+from shuffle import Atom, Shuffle, ShuffleError, all_possible_shuffles, all_simple_commutations
 
 al = Atom("a","l")
 ar = Atom("a","r")
@@ -36,9 +36,9 @@ print(
     f"after mixing beneath a c, the Shuffle S consists of {[at.val for at in S.shuf()]} with overall value {S.val()}"
 )
 
-l = ["abb","aabb", "aabbaabb","a",""]
-r = ["caca","baba", "bababa","",""]
-s = ["z","abababab", "ababababababab","a",""]
+l = ["abb","","aabb", "aabbaabb","a",""]
+r = ["caca","b","baba", "bababa","",""]
+s = ["z","b","abababab", "ababababababab","a",""]
 
 shufs = []
 for i in range(len(s)):
@@ -58,11 +58,24 @@ for i in range(len(s)):
     )
     for t in shufs[i]:
         try:
-            print(t.shuf())
+            print([at.val for at in t.shuf()])
         except AttributeError:
             print(t)
 
-f = all_possible_shuffles("a","","a")
-print(len("a")+len("")==len("a"))
-print(f)
-print(type(f))
+T = Shuffle()
+T.mix_in(al)
+T.mix_in(bl)
+T.mix_in(al)
+T.mix_in(ar)
+T.mix_in(br)
+T.mix_in(ar)
+print(
+    f"el valor de T es {T.val()} y los átomos están mezclados así:"
+)
+print(T)
+T2 = all_simple_commutations(T)
+print(
+    f"hay {len(T2)} conmutaciones posibles que se pueden obtener a partir de T:"
+)
+for s in T2:
+    print(s)

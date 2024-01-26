@@ -45,6 +45,24 @@ class Spliffer:
         stt = self._find_stt_id_from_stt(stt)
         return stt in self._A.initial_states()
 
+    def accesible_states(self, with_names=False):
+        visited = self.initial_states()
+        while True:
+            new_visited = visited.copy()
+            for stt in visited:
+                l = self.successors(stt)
+                succ = [sttt for sttt in l if not sttt in new_visited]
+                new_visited.extend(succ)
+            if len(visited)==len(new_visited):
+                break
+            else:
+                visited = new_visited.copy()
+        if with_names:
+            return [(stt,self._states[stt]) if self._states[stt]!="" else stt
+                    for stt in visited]
+        else:
+            return visited
+
     def set_final(self,stt):
         stt = self._find_stt_id_from_stt(stt)
         self._A.set_final(stt)
@@ -61,6 +79,39 @@ class Spliffer:
         stt = self._find_stt_id_from_stt(stt)
         return stt in self._A.final_states()
 
+    def coaccesible_states(self, with_names=False):
+        visited = self.final_states()
+        while True:
+            new_visited = visited.copy()
+            for stt in visited:
+                l = self.predecessors(stt)
+                pred = [sttt for sttt in l if not sttt in new_visited]
+                new_visited.extend(pred)
+            if len(visited)==len(new_visited):
+                break
+            else:
+                visited = new_visited.copy()
+        if with_names:
+            return [(stt,self._states[stt]) if self._states[stt]!="" else stt
+                    for stt in visited]
+        else:
+            return visited
+
+    def useful_states(self,with_names=False):
+        L = [stt for stt in self.accesible_states(with_names=with_names) 
+             if stt in self.coaccesible_states(with_names=with_names)]
+        return L
+    
+    def trim(self):
+        """
+        Removes useless states from a Spliffer.
+        """
+        useful = self.useful_states()
+        states = list(self._states.keys()).copy()
+        for stt in states:
+            if not stt in useful:
+                self.del_state(stt)
+        
     def set_transition(self, stt_0,stt_1,ch,pos):
         """
         Usage: Spliffer.set.transition(self,stt_0,stt_1,ch,pos)
@@ -89,16 +140,21 @@ class Spliffer:
     def del_transition(self,tr):
         self.A.del_transition(tr)
 
-    def predecessors(self,stt,label=None):
+    def predecessors(self,stt,label=None,with_names=False):
         stt = self._find_stt_id_from_stt(stt)
-        return [(sttt,self._states[sttt]) if not self._states[sttt]=="" else sttt 
-                 for sttt in self._A.predecessors(stt,label)]
+        if with_names:
+            return [(sttt,self._states[sttt]) if not self._states[sttt]=="" else sttt 
+                     for sttt in self._A.predecessors(stt,label)]
+        else:
+            return self._A.predecessors(stt,label)
 
-    def successors(self,stt,label=None):
+    def successors(self,stt,label=None, with_names=False):
         stt = self._find_stt_id_from_stt(stt)
-        return [(sttt,self._states[sttt]) if not self._states[sttt]=="" else sttt 
-                 for sttt in self._A.successors(stt,label)]
-
+        if with_names:
+            return [(sttt,self._states[sttt]) if not self._states[sttt]=="" else sttt 
+                     for sttt in self._A.successors(stt,label)]
+        else:
+            return self._A.successors(stt,label)
 
     def accepts(self,shuf):
         """
