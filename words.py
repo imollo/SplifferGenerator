@@ -60,3 +60,24 @@ def nub(w):
         #return False
     #else:
         #return w1==w2[0:n]
+
+def next_lex(w,alph):
+    """
+    Given a word and an ordered alphabet,
+    returns the next lexicographic word.
+    """
+    l = alph[-1]
+    new_w = ""
+    for i in range(1,len(w)+1):
+        j = alph.find(w[-i])
+        new_char = alph[(j+1)%len(alph)]
+        new_w = new_char+new_w
+        if w[-i]!=l:
+            new_w = w[-len(w):-i]+new_w
+            break
+        elif i==len(w):
+            new_w = alph[0]+new_w
+    if len(new_w)==0: #this is horrible but I'm in a hurry
+        new_w = alph[0] 
+    return new_w
+

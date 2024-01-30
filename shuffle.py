@@ -171,9 +171,16 @@ def all_possible_shuffles(l,r,s):
     """
     if not len(l)+len(r)==len(s):
         raise ShuffleError(
-            f"the given arguments don't make up a valid shuffle"
+            f"the length of the arguments is wrong for a valid shuffle"
         )
     
+    alph = words.nub(l+r+s)
+    for ch in alph:
+        if not l.count(ch)+r.count(ch)==s.count(ch):
+            raise ShuffleError(
+                f"wrong count of character {ch} in arguments for a valid shuffle"
+            )
+
     if len(s)==0:
         S = Shuffle()
         return [S]
@@ -192,7 +199,15 @@ def all_possible_shuffles(l,r,s):
                 res.append(S)
 
         return res
-    
+
+def can_be_shuffled(l,r,s):
+    """
+    Returns True iff the words l,r can be shuffled
+    to obtain the word s.
+    """
+    L = all_possible_shuffles(l,r,s)
+    return len(L)>0
+
 def all_simple_commutations(S):
     """
     Takes a Shuffle S and returns a list of all possible Shuffles
@@ -229,3 +244,30 @@ def all_simple_commutations(S):
 
     return res
 
+#This function can probably be optimized but right now it doesn't seem worth the trouble
+def are_a_simple_comm_away(S1,S2):
+    return S2 in all_simple_commutations(S1)
+
+def all_possible_commutations(S):
+    to_visit = [S]
+    visited = []
+    while len(to_visit)>0:
+        T = to_visit.pop()
+        visited.append(T)
+        L = all_simple_commutations(T)
+        to_visit.extend([R for R in L if R not in visited])
+    return visited
+
+def compare_sets_of_shuffles(l1,l2):
+    """
+    Given two lists of Shuffles, returns True if they are 
+    equal as sets (i.e. their elements are the same, could be
+    in different order)
+    """
+    for s in l1:
+        if not s in l2:
+            return False
+    for s in l2:
+        if not s in l1:
+            return False
+    return True

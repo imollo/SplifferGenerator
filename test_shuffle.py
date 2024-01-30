@@ -1,4 +1,4 @@
-from shuffle import Atom, Shuffle, ShuffleError, all_possible_shuffles, all_simple_commutations
+from shuffle import Atom, Shuffle, ShuffleError, all_possible_shuffles, all_simple_commutations, are_a_simple_comm_away, all_possible_commutations,compare_sets_of_shuffles
 
 al = Atom("a","l")
 ar = Atom("a","r")
@@ -63,19 +63,62 @@ for i in range(len(s)):
             print(t)
 
 T = Shuffle()
-T.mix_in(al)
-T.mix_in(bl)
-T.mix_in(al)
 T.mix_in(ar)
 T.mix_in(br)
+T.mix_in(al)
+T.mix_in(bl)
 T.mix_in(ar)
+T.mix_in(bl)
+T.mix_in(al)
+
+T2 = Shuffle()
+T2.mix_in(ar)
+T2.mix_in(br)
+T2.mix_in(ar)
+T2.mix_in(al)
+T2.mix_in(bl)
+T2.mix_in(al)
+
 print(
     f"el valor de T es {T.val()} y los átomos están mezclados así:"
 )
 print(T)
-T2 = all_simple_commutations(T)
 print(
-    f"hay {len(T2)} conmutaciones posibles que se pueden obtener a partir de T:"
+    f"el valor de T2 es {T2.val()} y los átomos están mezclados así:"
 )
-for s in T2:
+print(T2)
+
+L = all_simple_commutations(T)
+print(
+    f"hay {len(L)} conmutaciones simples posibles que se pueden obtener a partir de T:"
+)
+for s in L:
+    print(s)
+
+L = all_simple_commutations(T2)
+print(
+    f"hay {len(L)} conmutaciones simples posibles que se pueden obtener a partir de T2:"
+)
+for s in L:
+    print(s)
+
+print(
+    f"y T2 está a una conmutación simple de T: {are_a_simple_comm_away(T,T2)}"
+    )
+
+print(
+    f"Estas son todas las posibles conmutaciones asociadas a T:"
+)
+L2 = all_possible_commutations(T)
+for s in L2:
+    print(s)
+
+print(
+    f"en el caso de T, ¿es cierto que todos los shuffles obtenidos por conmutaciones son todos los shuffles en general?"
+)
+u,v,w = T.val()
+M = all_possible_shuffles(u,v,w)
+print(compare_sets_of_shuffles(L2,M))
+
+for s in M:
     print(s)
