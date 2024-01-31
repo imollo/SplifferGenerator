@@ -46,7 +46,7 @@ def nub(w):
     try:
         alph =s[0]
     except IndexError:
-        print("La palabra es vacía")
+        #print("La palabra es vacía")
         return ""  
     for c in s: 
         if c>alph[-1]:

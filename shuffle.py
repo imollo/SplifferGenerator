@@ -253,9 +253,10 @@ def all_possible_commutations(S):
     visited = []
     while len(to_visit)>0:
         T = to_visit.pop()
-        visited.append(T)
-        L = all_simple_commutations(T)
-        to_visit.extend([R for R in L if R not in visited])
+        if T not in visited:
+            visited.append(T)
+            L = all_simple_commutations(T)
+            to_visit.extend(L)
     return visited
 
 def compare_sets_of_shuffles(l1,l2):

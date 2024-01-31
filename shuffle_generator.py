@@ -4,8 +4,8 @@ import shuffle as sh
 import words as wd
 
 
-alph = "ab"
-N = 1
+alph = "abc"
+N = 4
 
 def generate_increasing_words(alph, lim_sup, lim_inf=0):
     """
@@ -33,28 +33,37 @@ def to_json(w1,w2,w3,l,m,b):
     json_str = json.dumps(data,indent=2)
     return json_str
 
+filename = "shuffles_to_"+str(N)+"_"+alph
 
-gen1 = generate_increasing_words(alph,N,lim_inf=1)
-gen2 = generate_increasing_words(alph,N,lim_inf=1)
-
-with open("shuffles.txt",'w') as file:
+first_time = True
+with open(filename,'w') as file:
+    file.write('[\n')
+    gen1 = generate_increasing_words(alph,N,lim_inf=1)
     for w1 in gen1:
+        gen2 = generate_increasing_words(alph,N,lim_inf=1)
         for w2 in gen2:
             gen3 = generate_increasing_words(alph,len(w1)+len(w2),lim_inf=len(w1)+len(w2))
             for w3 in gen3:
-                """ try:
+                try:
                     L = sh.all_possible_shuffles(w1,w2,w3)
                     l = len(L)
-                    S = L[0]
-                    M = sh.all_possible_commutations(S)
-                    m = len(M)
-                    b = sh.compare_sets_of_shuffles(L,M)
-                    s = to_json(w1,w2,w3,l,m,b)
-                    file.write(s)
-                    file.write("\n")
-                except sh.ShuffleError:
-                    continue  """
-                print(
-                    f"({w1},{w2},{w3})"
-                )
+                    try:
+                        S = L[0]
+                        M = sh.all_possible_commutations(S)
+                        m = len(M)
+                        b = sh.compare_sets_of_shuffles(L,M)
+                        s = to_json(w1,w2,w3,l,m,b)
+                        if first_time:
+                            file.write("\n")
+                            first_time=False
+                        else:
+                            file.write(",\n")
+                        file.write(s)
+                    except IndexError:
+                        #print(f"{w1},{w2} cannot be shuffled into {w3}")
+                        continue
+                except sh.ShuffleError as err:
+                    #print(err)
+                    continue  
+    file.write('\n]')
 
