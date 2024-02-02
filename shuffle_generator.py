@@ -1,11 +1,8 @@
 import json
+import sys
 
 import shuffle as sh
 import words as wd
-
-
-alph = "abc"
-N = 4
 
 def generate_increasing_words(alph, lim_sup, lim_inf=0):
     """
@@ -33,37 +30,47 @@ def to_json(w1,w2,w3,l,m,b):
     json_str = json.dumps(data,indent=2)
     return json_str
 
-filename = "shuffles_to_"+str(N)+"_"+alph
+def main(alph,N):
+    filename = "shuffles_to_"+str(N)+"_"+alph
 
-first_time = True
-with open(filename,'w') as file:
-    file.write('[\n')
-    gen1 = generate_increasing_words(alph,N,lim_inf=1)
-    for w1 in gen1:
-        gen2 = generate_increasing_words(alph,N,lim_inf=1)
-        for w2 in gen2:
-            gen3 = generate_increasing_words(alph,len(w1)+len(w2),lim_inf=len(w1)+len(w2))
-            for w3 in gen3:
-                try:
-                    L = sh.all_possible_shuffles(w1,w2,w3)
-                    l = len(L)
+    first_time = True
+    with open(filename,'w') as file:
+        file.write('[\n')
+        gen1 = generate_increasing_words(alph,N,lim_inf=1)
+        for w1 in gen1:
+            gen2 = generate_increasing_words(alph,N,lim_inf=1)
+            for w2 in gen2:
+                gen3 = generate_increasing_words(alph,len(w1)+len(w2),lim_inf=len(w1)+len(w2))
+                for w3 in gen3:
                     try:
-                        S = L[0]
-                        M = sh.all_possible_commutations(S)
-                        m = len(M)
-                        b = sh.compare_sets_of_shuffles(L,M)
-                        s = to_json(w1,w2,w3,l,m,b)
-                        if first_time:
-                            file.write("\n")
-                            first_time=False
-                        else:
-                            file.write(",\n")
-                        file.write(s)
-                    except IndexError:
-                        #print(f"{w1},{w2} cannot be shuffled into {w3}")
-                        continue
-                except sh.ShuffleError as err:
-                    #print(err)
-                    continue  
-    file.write('\n]')
+                        L = sh.all_possible_shuffles(w1,w2,w3)
+                        l = len(L)
+                        try:
+                            S = L[0]
+                            M = sh.all_possible_commutations(S)
+                            m = len(M)
+                            b = sh.compare_sets_of_shuffles(L,M)
+                            s = to_json(w1,w2,w3,l,m,b)
+                            if first_time:
+                                file.write("\n")
+                                first_time=False
+                            else:
+                                file.write(",\n")
+                            file.write(s)
+                        except IndexError:
+                            #print(f"{w1},{w2} cannot be shuffled into {w3}")
+                            continue
+                    except sh.ShuffleError as err:
+                        #print(err)
+                        continue  
+        file.write('\n]')
 
+try:
+    main(sys.argv[1],int(sys.argv[2]))
+except:
+    print(
+        f"Usage: \npython3 {sys.argv[0]} <alph> <N>\n with:\n * <alph> a string of alphabet symbols \n * <N> the maximum length of the shuffling words to generate"
+    )
+    print(
+        "A file called 'shuffles_to_<N>_<alph>' will be generated with the results."
+    )
