@@ -30,7 +30,7 @@ def to_json(w1,w2,w3,l,m,b):
     json_str = json.dumps(data,indent=2)
     return json_str
 
-def main(alph,N):
+def generate_shuffles_to_file(alph,N):
     filename = "shuffles_to_"+str(N)+"_"+alph
 
     first_time = True
@@ -64,6 +64,10 @@ def main(alph,N):
                         #print(err)
                         continue  
         file.write('\n]')
+
+
+def main(alph,N):
+    generate_shuffles_to_file(alph,N)
 
 try:
     main(sys.argv[1],int(sys.argv[2]))
