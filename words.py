@@ -64,7 +64,7 @@ def nub(w):
 def next_lex(w,alph):
     """
     Given a word and an ordered alphabet,
-    returns the next lexicographic word.
+    returns the next word in lexicographic order.
     """
     l = alph[-1]
     new_w = ""
