@@ -42,6 +42,8 @@ def generate_shuffles_to_file(alph,N):
             for w2 in gen2:
                 gen3 = generate_increasing_words(alph,len(w1)+len(w2),lim_inf=len(w1)+len(w2))
                 for w3 in gen3:
+                    if not wd.is_canonical_word(w3,alph): #We don't want superfluous cases
+                        continue
                     try:
                         L = sh.all_possible_shuffles(w1,w2,w3)
                         l = len(L)

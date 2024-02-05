@@ -53,13 +53,13 @@ def nub(w):
             alph=alph+c
     return alph
 
-#def is_prefix(w1,w2):
-    #n = len(w1)
-    #m = len(w2)
-    #if (n>m):
-        #return False
-    #else:
-        #return w1==w2[0:n]
+def is_prefix(w1,w2):
+    n = len(w1)
+    m = len(w2)
+    if (n>m):
+        return False
+    else:
+        return w1==w2[0:n]
 
 def next_lex(w,alph):
     """
@@ -81,3 +81,23 @@ def next_lex(w,alph):
         new_w = alph[0] 
     return new_w
 
+def is_canonical_word(w,alph):
+    """
+    Takes a word and an ordered alphabet. It returns True iff
+    w is its own canonical representative under ordered alphabet 
+    isomorphisms. For instance, if alph='abcd' then the following
+    are pairs of words such that the second is the canonical 
+    representative of the first.
+
+    * bda -----> abc
+    * ccaaab ------> aabbbc
+    * cdcdcdcdbbb -------> ababababccc
+    """
+    seen = ""
+    for ch in w:
+        if not ch in seen:
+            seen = seen + ch
+    return is_prefix(seen,alph)
+
+def is_palindrome(w):
+    return w==w[::-1]

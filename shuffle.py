@@ -1,3 +1,5 @@
+from termcolor import colored #for Shuffle.__repr__
+
 import words #necessary for words.nub
 
 class Atom:
@@ -79,11 +81,18 @@ class Shuffle:
         return S
     
     def __repr__(self):
-        return self._s.__repr__()
+        str = ""
+        for at in self._s:
+            if at.pos=='l':
+                aux_str = colored(at.ch,"white","on_red")
+            elif at.pos=='r':
+                aux_str = colored(at.ch,"white","on_blue")
+            str = str+aux_str
+        return str
+        #return self._s.__repr__()
 
     def __str__(self):
-        l = [at.val for at in self._s]
-        return str(l)
+        return self.__repr__()
 
     def __eq__(self,other):
         return self._s==other._s and self._v==other._v
@@ -96,6 +105,9 @@ class Shuffle:
         copy_instance._v = self._v
         return copy_instance 
     """
+
+    def display(self):
+        print(self.__repr__())
 
     def mix_in(self,at):
         """
@@ -272,3 +284,23 @@ def compare_sets_of_shuffles(l1,l2):
         if not s in l1:
             return False
     return True
+
+def are_trim_shuffle(l,r,s):
+    """
+    Takes three words (l,r,s) and returns True iff
+    there's no initial or final group of Atoms such that 
+    that group is present in the same position
+    in every possible Shuffle of (l,r,s). 
+    """
+    alph = words.nub(l+r+s)
+    L = all_possible_shuffles(l,r,s)
+    S0 = L[0]
+    first_atom_varies = False
+    last_atom_varies  = False
+    for S in L:
+        if S0.shuf()[0] != S.shuf()[0]:
+            first_atom_varies = True
+        if S0.shuf()[-1] != S.shuf()[-1]:
+            last_atom_varies  = True
+    return first_atom_varies and last_atom_varies
+    
