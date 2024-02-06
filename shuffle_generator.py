@@ -9,7 +9,7 @@ def generate_increasing_words(alph, lim_sup, lim_inf=0):
     Generator which takes an ordered alphabet
     and yields words in lexicographic order.
     It starts in alph[0]^lim_inf and ends 
-    before reaching length lim_sup.
+    before surpassing length lim_sup.
     """
     current = ""
     for i in range(lim_inf):
