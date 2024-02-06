@@ -285,22 +285,45 @@ def compare_sets_of_shuffles(l1,l2):
             return False
     return True
 
-def are_trim_shuffle(l,r,s):
+def have_initial_or_final_redundant_commutativity(l,r,s):
     """
     Takes three words (l,r,s) and returns True iff
-    there's no initial or final group of Atoms such that 
-    that group is present in the same position
-    in every possible Shuffle of (l,r,s). 
+    there's an initial or final Atom which appears always to
+    commutative distance of any Shuffle.
     """
     alph = words.nub(l+r+s)
     L = all_possible_shuffles(l,r,s)
     S0 = L[0]
-    first_atom_varies = False
-    last_atom_varies  = False
-    for S in L:
-        if S0.shuf()[0] != S.shuf()[0]:
-            first_atom_varies = True
-        if S0.shuf()[-1] != S.shuf()[-1]:
-            last_atom_varies  = True
-    return first_atom_varies and last_atom_varies
+    try:
+        at_l_i = Atom(l[0],'l')
+        at_l_f = Atom(l[-1],'l')
+        at_r_i = Atom(r[0],'r')
+        at_r_f = Atom(r[-1],'r')
+    except IndexError as err:
+        print(err)
+    suspected_atoms = {"l_i":True,"r_i":True,"l_f":True,"r_f":True}
+    visited_shuffles = []
+    for s in L:
+        if s in visited_shuffles:
+            continue
+        M = all_possible_commutations(s)
+        visited_shuffles.extend(M)
+        appears = {"l_i":False,"r_i":False,"l_f":False,"r_f":False}
+        for c in M:
+            if at_l_i == c.shuf()[0]:
+                appears["l_i"] = True
+            if at_l_f == c.shuf()[-1]:
+                appears["l_f"] = True
+            if at_r_i == c.shuf()[0]:
+                appears["r_i"] = True
+            if at_r_f == c.shuf()[-1]:
+                appears["r_f"] = True
+        for k in appears.keys():
+            if not appears[k]:
+                suspected_atoms[k] = False
+    res = False
+    for k in suspected_atoms.keys():
+        res = res or suspected_atoms[k]
+    return res
+
     

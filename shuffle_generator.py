@@ -18,7 +18,8 @@ def generate_increasing_words(alph, lim_sup, lim_inf=0):
         yield current
         current = wd.next_lex(current,alph)
 
-def to_json(w1,w2,w3,l,m,b):
+
+def to_dict(w1,w2,w3,l,m,b):
     data = {
         'w1': w1,
         'w2': w2,
@@ -27,7 +28,11 @@ def to_json(w1,w2,w3,l,m,b):
         'ways_to_commute':m,
         'commuting_is_enough':b
     }
-    json_str = json.dumps(data,indent=2)
+    return data
+
+def to_json(w1,w2,w3,l,m,b):
+    d = to_dict(w1,w2,w3,l,m,b)
+    json_str = json.dumps(d,indent=2)
     return json_str
 
 def generate_shuffles_to_file(alph,N):
@@ -65,8 +70,43 @@ def generate_shuffles_to_file(alph,N):
                     except sh.ShuffleError as err:
                         #print(err)
                         continue  
-        file.write('\n]')
+        file.write('\n]') 
+        
+def add_shuffles_and_append(filename,alph,n,N):
+    """
+    Auxiliary function to complete shuffle files up to 
+    an N>n input size.
+    """
+    new_filename = "shuffles_to_"+str(N)+"_"+alph
 
+    with open(filename,'r') as file:
+        json_data = json.load(file)
+    gen1 = generate_increasing_words(alph,N)
+    for w1 in gen1:
+        gen2 = generate_increasing_words(alph,N,lim_inf=n)
+        for w2 in gen2:
+            gen3 = generate_increasing_words(alph,len(w1)+len(w2),lim_inf=len(w1)+len(w2))
+            for w3 in gen3:
+                if not wd.is_canonical_word(w3,alph):
+                    continue
+                try:
+                    L = sh.all_possible_shuffles(w1,w2,w3)
+                    l = len(L)
+                    try:
+                        S = L[0]
+                        M = sh.all_possible_commutations(S)
+                        m = len(M)
+                        b = sh.compare_sets_of_shuffles(L,M)
+                        d = to_dict(w1,w2,w3,l,m,b)
+                        json_data.append(d)
+                    except IndexError:
+                        #print(f"{w1},{w2} cannot be shuffled into {w3}")
+                        continue
+                except sh.ShuffleError:
+                    continue
+    json_str = json.dumps(json_data,indent=2)
+    with open(new_filename,'w') as file:
+        file.write(json_str)
 
 def main(alph,N):
     generate_shuffles_to_file(alph,N)
