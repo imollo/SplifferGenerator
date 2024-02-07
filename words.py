@@ -61,6 +61,32 @@ def is_prefix(w1,w2):
     else:
         return w1==w2[0:n]
 
+def is_greater_lex(w1,w2,alph):
+    """
+    Returns True iff <w1> is lexicographically greater than <w2>
+    under the ordered alphabet <alph>.
+    """
+    if len(w1)>len(w2):
+        return True
+    elif len(w2)>len(w1):
+        return False
+    else:
+        for i in range(len(w1)):
+            if alph.find(w1[i])>alph.find(w2[i]):
+                return True
+            elif alph.find(w1[i])<alph.find(w2[i]):
+                return False
+            else:
+                continue
+        return False
+
+def is_lesser_lex(w1,w2,alph):
+    """
+    Returns True iff <w1> is lexicographically lesser than <w2>
+    under the ordered alphabet <alph>.
+    """
+    return is_greater_lex(w2,w1,alph)
+
 def next_lex(w,alph):
     """
     Given a word and an ordered alphabet,

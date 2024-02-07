@@ -36,6 +36,22 @@ def to_json(w1,w2,w3,l,m,b):
     return json_str
 
 def generate_shuffles_to_file(alph,N):
+    """
+    Given an ordered alphabet <alph> and a natural number <N>, it generates a json file
+    containing all tuples (w1,w2,w3) such that:
+    * w1,w2,w3 are words on <alph>
+    * w1 and w2 can be shuffled to obtain w3
+    * w1 is always lexicographically smaller than w2 for the order in <alph>
+    * w3 is always a canonical word on <alph> (that is, its first letter to appear is always alph[0], the second alph[1], etc.)
+    The last two points are there to avoid duplicates in the file.
+    
+    The file contains the number of ways w1 and w2 can be shuffled to obtain w3,
+    and also whether simple commutations from a single shuffle are enough to obtain all
+    possible shuffles.
+
+    The results are written to file <shuffle_to_N_alph> in the same folder from where
+    this script is run. 
+    """
     filename = "shuffles_to_"+str(N)+"_"+alph
 
     first_time = True
@@ -43,8 +59,10 @@ def generate_shuffles_to_file(alph,N):
         file.write('[\n')
         gen1 = generate_increasing_words(alph,N,lim_inf=1)
         for w1 in gen1:
-            gen2 = generate_increasing_words(alph,N,lim_inf=1)
+            gen2 = generate_increasing_words(alph,N,lim_inf=len(w1))
             for w2 in gen2:
+                if len(w1)==len(w2) and wd.is_greater_lex(w1,w2,alph):
+                    continue
                 gen3 = generate_increasing_words(alph,len(w1)+len(w2),lim_inf=len(w1)+len(w2))
                 for w3 in gen3:
                     if not wd.is_canonical_word(w3,alph): #We don't want superfluous cases
@@ -108,15 +126,24 @@ def add_shuffles_and_append(filename,alph,n,N):
     with open(new_filename,'w') as file:
         file.write(json_str)
 
+def delete_duplicates(filename):
+    """
+    Auxiliary function to delete duplicates from already generated shuffle files.
+    This is necessary because a previous version of generate_shuffles_to_file 
+    generated both (w1,w2,w3) and (w2,w1,w3) separately.
+    """
+    pass
+
 def main(alph,N):
     generate_shuffles_to_file(alph,N)
 
 try:
     main(sys.argv[1],int(sys.argv[2]))
-except:
+except BaseException as err:
     print(
         f"Usage: \npython3 {sys.argv[0]} <alph> <N>\n with:\n * <alph> a string of alphabet symbols \n * <N> the maximum length of the shuffling words to generate"
     )
     print(
         "A file called 'shuffles_to_<N>_<alph>' will be generated with the results."
     )
+    print(err)
