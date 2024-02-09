@@ -107,7 +107,7 @@ def add_shuffles_and_append(filename,alph,n,N):
     """
     new_filename = "shuffles_to_"+str(N)+"_"+alph
 
-    print(f"Reading sourcefile {filename}...", end="")
+    print(f"Reading sourcefile {filename}...", end=" ")
     with open(filename,'r') as file:
         initial_data = file.read()
         initial_data = initial_data[:-2] # we remove "\n]"" at the end of file 
@@ -116,7 +116,7 @@ def add_shuffles_and_append(filename,alph,n,N):
     first_time = True
     lenw1 = 1
 
-    print(f"Writing on new file {new_filename}...", end="")
+    print(f"Writing on new file {new_filename}...")
     with open(new_filename,'w') as file:
         file.write(initial_data)
         file.write(",\n")
