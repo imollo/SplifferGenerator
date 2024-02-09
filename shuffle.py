@@ -176,7 +176,7 @@ class Shuffle:
 class ShuffleError(BaseException):
     pass
 
-def all_possible_shuffles(l,r,s):
+def all_possible_shuffles(l,r,s,alph=None):
     """
     Given three words l,r,s it returns a list of all
     possible Shuffles such that their values are (l,r,s)
@@ -186,7 +186,8 @@ def all_possible_shuffles(l,r,s):
             f"the length of the arguments is wrong for a valid shuffle"
         )
     
-    alph = words.nub(l+r+s)
+    if alph==None:
+        alph = words.nub(l+r+s)
     for ch in alph:
         if not l.count(ch)+r.count(ch)==s.count(ch):
             raise ShuffleError(
