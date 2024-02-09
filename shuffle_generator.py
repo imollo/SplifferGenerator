@@ -55,10 +55,16 @@ def generate_shuffles_to_file(alph,N):
     filename = "shuffles_to_"+str(N)+"_"+alph
 
     first_time = True
+    lenw1 = 1
+
     with open(filename,'w') as file:
+        print("Starting to generate shuffles.")
         file.write('[\n')
         gen1 = generate_increasing_words(alph,N,lim_inf=1)
         for w1 in gen1:
+            if len(w1)>lenw1:
+                print(f"Generating words of length {len(w1)} for w1.")
+                lenw1=len(w1)
             gen2 = generate_increasing_words(alph,N,lim_inf=len(w1))
             for w2 in gen2:
                 if len(w1)==len(w2) and wd.is_greater_lex(w1,w2,alph):
@@ -88,24 +94,41 @@ def generate_shuffles_to_file(alph,N):
                     except sh.ShuffleError as err:
                         #print(err)
                         continue  
-        file.write('\n]') 
+        file.write('\n]')
+        print("Generation complete.") 
 
-def new_add_shuffles_and_append(filename,alph,n,N):
+def add_shuffles_and_append(filename,alph,n,N):
     """
     Auxiliary function to complete shuffle files up to 
     an N>n input size.
+
+    Despite its name, a new file is generated where 
+    the whole thing is dumped.
     """
     new_filename = "shuffles_to_"+str(N)+"_"+alph
 
+    print(f"Reading sourcefile {filename}...", end="")
     with open(filename,'r') as file:
         initial_data = file.read()
         initial_data = initial_data[:-2] # we remove "\n]"" at the end of file 
+    print("Done.")
+
+    first_time = True
+    lenw1 = 1
+
+    print(f"Writing on new file {new_filename}...", end="")
     with open(new_filename,'w') as file:
         file.write(initial_data)
         file.write(",\n")
-        first_time = True
+        print(f"Data from {filename} successfully copied.")
+        print("Starting to generate shuffles.")
+
+        
         gen1 = generate_increasing_words(alph,N,lim_inf=1)
         for w1 in gen1:
+            if len(w1)>lenw1:
+                print(f"Generating words of length {len(w1)} for w1.")
+                lenw1=len(w1)
             gen2 = generate_increasing_words(alph,N,lim_inf=max(n,len(w1)))
             for w2 in gen2:
                 if len(w1)==len(w2) and wd.is_greater_lex(w1,w2,alph):
@@ -134,45 +157,7 @@ def new_add_shuffles_and_append(filename,alph,n,N):
                     except sh.ShuffleError:
                         continue
         file.write("\n]")
-    
-
-def add_shuffles_and_append(filename,alph,n,N):
-    """
-    Auxiliary function to complete shuffle files up to 
-    an N>n input size.
-    """
-    new_filename = "shuffles_to_"+str(N)+"_"+alph
-
-    with open(filename,'r') as file:
-        json_data = json.load(file)
-    gen1 = generate_increasing_words(alph,N)
-    for w1 in gen1:
-        gen2 = generate_increasing_words(alph,N,lim_inf=max(n,len(w1)))
-        for w2 in gen2:
-            if len(w1)==len(w2) and wd.is_greater_lex(w1,w2,alph):
-                    continue
-            gen3 = generate_increasing_words(alph,len(w1)+len(w2),lim_inf=len(w1)+len(w2))
-            for w3 in gen3:
-                if not wd.is_canonical_word(w3,alph):
-                    continue
-                try:
-                    L = sh.all_possible_shuffles(w1,w2,w3)
-                    l = len(L)
-                    try:
-                        S = L[0]
-                        M = sh.all_possible_commutations(S)
-                        m = len(M)
-                        b = sh.compare_sets_of_shuffles(L,M)
-                        d = to_dict(w1,w2,w3,l,m,b)
-                        json_data.append(d)
-                    except IndexError:
-                        #print(f"{w1},{w2} cannot be shuffled into {w3}")
-                        continue
-                except sh.ShuffleError:
-                    continue
-    json_str = json.dumps(json_data,indent=2)
-    with open(new_filename,'w') as file:
-        file.write(json_str)
+        print("Generation complete.")
 
 def append_files(filename1,filename2,new_filename):
     """
