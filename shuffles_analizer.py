@@ -52,21 +52,29 @@ def filter_by(filename,new_filename,function):
     """
     filtered = []
 
+    print(f"Reading data from {filename}...",end="")
     json_data = retrieve_json_data(filename)
+    print("Done.")
+
     n = len(json_data)
 
+    print("Starting the filtering process...",end="")
     for thing in json_data:
         try:
             if function(thing):
                 filtered.append(thing)
         except BaseException:
             continue
+    print("Done.")
     
     filtered.insert(0,str(len(filtered))+" elements filtered out of "+str(n)+".")
     json_str = json.dumps(filtered,indent=2)
 
+    print(f"Writing filtered data to {new_filename}...", end="")
     with open(new_filename,'w') as file:
         file.write(json_str)
+    print("Done.")
+    print("Filtering process complete.")
 
 def filter_counterexamples(filename):
     """

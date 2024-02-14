@@ -6,7 +6,8 @@ def diligent_spliffer(l,r,s,alph=""):
     r = word_to_primitive(r)
     s = word_to_primitive(s)
     
-    alph = nub(l+r+s)
+    if alph == "":
+        alph = nub(l+r+s)
 
     D = Spliffer(alph)
     D.add_state(name="0,0,0")
