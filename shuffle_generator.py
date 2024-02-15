@@ -59,7 +59,7 @@ def generate_shuffles_to_file(alph,N):
 
     with open(filename,'w') as file:
         print("Starting to generate shuffles.")
-        file.write('[\n')
+        file.write('[')
         gen1 = generate_increasing_words(alph,N,lim_inf=1)
         for w1 in gen1:
             if len(w1)>lenw1:

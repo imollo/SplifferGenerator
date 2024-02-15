@@ -327,4 +327,11 @@ def have_initial_or_final_redundant_commutativity(l,r,s):
         res = res or suspected_atoms[k]
     return res
 
-    
+def reduce_to_primitive_representation(l,r,s):
+    lp = words.word_to_primitive(l)
+    ln = len(l)//len(lp)
+    rp = words.word_to_primitive(r)
+    rn = len(r)//len(rp)
+    sp = words.word_to_primitive(s)
+    sn = len(s)//len(sp)
+    return ((lp,ln),(rp,rn),(sp,sn))
