@@ -45,6 +45,45 @@ def build_diligent_spliffers(filename):
             continue
 
 
+def to_json_leftmost(w1,w2,w3,L):
+    d = {"w1":w1,"w2":w2,"w3":w3,"n":len(L),"p":L.__str__()}
+    json_str = json.dumps(d,indent=2)
+    return json_str
+
+def find_leftmost_shuffles(filename):
+    new_filename = filename+"_leftmost_shuffles"
+    json_data = retrieve_json_data(filename)
+    first_time = True
+
+    with open(new_filename,"w") as file:
+        file.write('[')
+        for thing in json_data:
+            try:
+                w1 = thing["w1"]
+                w2 = thing["w2"]
+                w3 = thing["w3"]
+                S = sh.all_possible_shuffles(w1,w2,w3)
+                L = []
+                for s1 in S:
+                    lefter = True
+                    for s2 in S:
+                        if not sh.is_lefter_than(s1,s2):
+                            lefter = False
+                            break
+                    if lefter:
+                        L.append([at.pos for at in s1.shuf()])
+                json_str = to_json_leftmost(w1,w2,w3,L)
+                if first_time:
+                    file.write("\n")
+                    first_time = False
+                else:
+                    file.write(",\n")
+                file.write(json_str)
+            except (IndexError,TypeError):
+               continue
+        file.write("\n]")
+
+
 def to_json_generators(w1,w2,w3,L):
     d = {"w1":w1,"w2":w2,"w3":w3,"p":L}
     json_str = json.dumps(d,indent=2)
@@ -189,6 +228,37 @@ def filter_by_includedness(filename):
         return (not (w1 in w2)) and (not (w2 in w1))
     filter_by(filename,new_filename,check_not_included)
 
+def filter_by_inexistence_of_leftmost_shuffle(filename):
+    new_filename = filename+"_not_leftmost_shuffle"
+    def check_there_is_no_leftmost_shuffle(thing):
+        w1 = thing["w1"]
+        w2 = thing["w2"]
+        w3 = thing["w3"]
+        L = sh.all_possible_shuffles(w1,w2,w3)
+        s_min = None
+        for s1 in L:
+            is_candidate = True
+            for s2 in L:
+                if s1==s2:
+                    continue
+                if not sh.is_lefter_than(s1,s2):
+                    is_candidate = False
+                    break
+            if is_candidate:
+                s_min = s1
+                break
+            else:
+                continue
+        return s_min == None
+    filter_by(filename,new_filename,check_there_is_no_leftmost_shuffle)
+
+def filter_by_amount_of_leftmost_shuffles(filename,n):
+    new_filename = filename + f"_at_least_{n}_leftmost"
+    def check_there_is_at_least_n_leftmost(thing):
+        m = thing["n"]
+        return m>=n
+    filter_by(filename,new_filename,check_there_is_at_least_n_leftmost)
+
 def main(option, filename):
     if option == "counterexamples":
         filter_counterexamples(filename)
@@ -206,6 +276,12 @@ def main(option, filename):
         filter_by_input_inequality(filename)
     elif option == "primitives":
         classify_by_primitive_generators(filename)
+    elif option == "leftmost_inexistence":
+        filter_by_inexistence_of_leftmost_shuffle(filename)
+    elif option == "leftmosts":
+        find_leftmost_shuffles(filename)
+    elif option == "leftmost_amount":
+        filter_by_amount_of_leftmost_shuffles(filename,2)
     else:
         raise ValueError
 

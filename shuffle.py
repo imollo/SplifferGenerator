@@ -24,6 +24,12 @@ class Atom:
 
     def __eq__(self,other):
         return self.ch==other.ch and self.pos==other.pos
+    
+    def is_left_atom(self):
+        return self.pos == 'l'
+    
+    def is_right_atom(self):
+        return self.pos == 'r'
 
     @staticmethod
     def concatenate(L):
@@ -335,3 +341,24 @@ def reduce_to_primitive_representation(l,r,s):
     sp = words.word_to_primitive(s)
     sn = len(s)//len(sp)
     return ((lp,ln),(rp,rn),(sp,sn))
+
+def is_lefter_than(s1,s2):
+    """
+    Compares two different Shuffles for the same tuple (l,r,s), 
+    and returns True if and only if every left letter is used sooner
+    in s1 than in s2. 
+    """
+    if s1.val() != s2.val():
+        raise ValueError(
+            f"Shuffles correspond to different values."
+        )
+    (l,r,s) = s1.val()
+    n1, n2 = 0,0
+    for i in range(len(s)):
+        if s1.shuf()[i].is_left_atom():
+            n1 = n1+1
+        if s2.shuf()[i].is_left_atom():
+            n2 = n2+1
+        if n2>n1:
+            return False
+    return True
