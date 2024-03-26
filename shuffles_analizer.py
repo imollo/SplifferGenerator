@@ -85,7 +85,7 @@ def find_leftmost_shuffles(filename):
 
 
 def to_json_generators(w1,w2,w3,L):
-    d = {"w1":w1,"w2":w2,"w3":w3,"p":L}
+    d = {"w1":w1,"w2":w2,"w3":w3,"p":str(L)}
     json_str = json.dumps(d,indent=2)
     return json_str
 
@@ -112,13 +112,15 @@ def classify_by_primitive_generators(filename):
             w2 = thing["w2"]
             w3 = thing["w3"]
             P = sh.reduce_to_primitive_representation(w1,w2,w3)
-            if not P[0][0] in left_primitives.keys():
-                left_primitives[P[0][0]] = {}
-            if not P[1][0] in left_primitives[P[0][0]].keys():
-                left_primitives[P[1][0]][P[1][0]] = {}
-            if not P[2][0] in left_primitives[P[0][0]][P[1][0]].keys():
-                left_primitives[P[0][0]][P[1][0]][P[2][0]] = []
-            left_primitives[P[0][0]][P[1][0]][P[2][0]].append((P[0][1],P[1][1],P[2][1]))
+            lp,rp,sp = P[0][0],P[1][0],P[2][0]
+            ln,rn,sn = P[0][1],P[1][1],P[2][1]
+            if not lp in left_primitives.keys():
+                left_primitives[lp] = {}
+            if not rp in left_primitives[lp].keys():
+                left_primitives[lp][rp] = {}
+            if not sp in left_primitives[lp][rp].keys():
+                left_primitives[lp][rp][sp] = []
+            left_primitives[lp][rp][sp].append((ln,rn,sn))
         except:
             pass
 
@@ -252,13 +254,15 @@ def filter_by_inexistence_of_leftmost_shuffle(filename):
         return s_min == None
     filter_by(filename,new_filename,check_there_is_no_leftmost_shuffle)
 
+""" 
 def filter_by_amount_of_leftmost_shuffles(filename,n):
     new_filename = filename + f"_at_least_{n}_leftmost"
     def check_there_is_at_least_n_leftmost(thing):
         m = thing["n"]
         return m>=n
     filter_by(filename,new_filename,check_there_is_at_least_n_leftmost)
-
+""" # Don't really need this actually: if the leftmost exists, it is unique
+    
 def main(option, filename):
     if option == "counterexamples":
         filter_counterexamples(filename)
@@ -280,10 +284,9 @@ def main(option, filename):
         filter_by_inexistence_of_leftmost_shuffle(filename)
     elif option == "leftmosts":
         find_leftmost_shuffles(filename)
-    elif option == "leftmost_amount":
-        filter_by_amount_of_leftmost_shuffles(filename,2)
     else:
         raise ValueError
+    
 
 try:
     main(sys.argv[1], sys.argv[2])
