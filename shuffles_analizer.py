@@ -13,21 +13,27 @@ def retrieve_json_data(filename):
             json_data = json.load(file)
         return json_data
 
-def build_diligent_spliffers(filename):
-    folder_name = filename+"_diligent_spliffers"
-
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
-
-    #Esto es horrible, lo hago para encontrar el alfabeto a partir del filename
-    #El alfabeto suele venir después del número en el formato de nombres que estoy usando
-    #e.g. "shuffle_to_5_ab_counterexamples" o "shuffle_to_3_abcd"
+def find_alph_from_filename(filename):
+    """
+    Esto es horrible, lo hago para encontrar el alfabeto a partir del filename
+    El alfabeto suele venir después del número en el formato de nombres que estoy usando
+    e.g. "shuffle_to_5_ab_counterexamples" o "shuffle_to_3_abcd"
+    """
     alph=""
     l = filename.split("_")
     for i in range(len(l)):
         if l[i].isalnum():
             alph = l[i+1]
             break
+    return alph
+        
+def build_diligent_spliffers(filename):
+    folder_name = filename+"_diligent_spliffers"
+
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+    alph = find_alph_from_filename(filename)
 
     json_data = retrieve_json_data(filename)
     for thing in json_data:
@@ -230,7 +236,7 @@ def filter_by_conjugacy(filename):
         w1 = thing["w1"]
         w2 = thing["w2"]
         w3 = thing["w3"]
-        alph = ["a","b"]
+        alph = find_alph_from_filename(filename)
         res = wd.is_self_adjoint(w1,alph) and wd.is_self_adjoint(w2,alph) and wd.is_self_adjoint(w3,alph)
         return res
     filter_by(filename,new_filename,check_conjugacy)
@@ -244,7 +250,7 @@ def filter_by_unconjugacy(filename):
         w1 = thing["w1"]
         w2 = thing["w2"]
         w3 = thing["w3"]
-        alph = ["a","b"]
+        alph = find_alph_from_filename(filename)
         res = not (wd.is_self_adjoint(w1,alph) and wd.is_self_adjoint(w2,alph) and wd.is_self_adjoint(w3,alph))
         return res
     filter_by(filename,new_filename,check_unconjugacy)
