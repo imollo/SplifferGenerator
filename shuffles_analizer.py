@@ -160,6 +160,7 @@ def filter_by(filename,new_filename,function):
             if function(thing):
                 filtered.append(thing)
         except BaseException:
+            n = n-1
             continue
     print("Done.")
     
@@ -209,6 +210,44 @@ def filter_by_palindromy(filename):
         res = wd.is_palindrome(w1) and wd.is_palindrome(w2) and wd.is_palindrome(w3)
         return res
     filter_by(filename,new_filename,check_palindromic)
+
+def filter_by_unpalindromy(filename):
+    new_filename = filename+"_not_palindromic"
+    def check_unpalindromicy(thing):
+        w1 = thing["w1"]
+        w2 = thing["w2"]
+        w3 = thing["w3"]
+        res = not (wd.is_palindrome(w1) and wd.is_palindrome(w2) and wd.is_palindrome(w3))
+        return res
+    filter_by(filename,new_filename,check_unpalindromicy)
+
+def filter_by_conjugacy(filename):
+    """"
+    Requires binary alphabet.
+    """
+    new_filename = filename+"_conjugacy"
+    def check_conjugacy(thing):
+        w1 = thing["w1"]
+        w2 = thing["w2"]
+        w3 = thing["w3"]
+        alph = ["a","b"]
+        res = wd.is_self_adjoint(w1,alph) and wd.is_self_adjoint(w2,alph) and wd.is_self_adjoint(w3,alph)
+        return res
+    filter_by(filename,new_filename,check_conjugacy)
+
+def filter_by_unconjugacy(filename):
+    """"
+    Requires binary alphabet.
+    """
+    new_filename = filename+"_not_conjugacy"
+    def check_unconjugacy(thing):
+        w1 = thing["w1"]
+        w2 = thing["w2"]
+        w3 = thing["w3"]
+        alph = ["a","b"]
+        res = not (wd.is_self_adjoint(w1,alph) and wd.is_self_adjoint(w2,alph) and wd.is_self_adjoint(w3,alph))
+        return res
+    filter_by(filename,new_filename,check_unconjugacy)
 
 def filter_by_input_equality(filename):
     new_filename = filename+"_equals"
@@ -272,6 +311,12 @@ def main(option, filename):
         filter_essential_counterexamples(filename)
     elif option == "palindrome":
         filter_by_palindromy(filename)
+    elif option == "not_palindrome":
+        filter_by_unpalindromy(filename)
+    elif option == "conjugate":
+        filter_by_conjugacy(filename)
+    elif option == "not_conjugate":
+        filter_by_unconjugacy(filename)
     elif option == "included":
         filter_by_includedness(filename)
     elif option == "equality":

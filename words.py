@@ -127,3 +127,30 @@ def is_canonical_word(w,alph):
 
 def is_palindrome(w):
     return w==w[::-1]
+
+def conjugate(w,alph=None):
+    """
+    Requires binary alphabet.
+    """
+    if alph==None:
+        alph_1=nub(w)
+        if len(alph_1)!=2:
+            raise ValueError(
+                "Need a two-symbol alphabet."
+            )
+        else:
+            alph = alph_1
+
+    w2 = ""
+    for i in range(len(w)):
+        if w[i] == alph[0]:
+            w2 = w2+alph[1]
+        else:
+            w2 = w2+alph[0]
+    return w2
+
+def is_self_adjoint(w,alph=None):
+    """
+    Requires binary alphabet.
+    """
+    return w==conjugate(w,alph)[::-1]
