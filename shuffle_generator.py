@@ -4,7 +4,7 @@ import sys
 import shuffle as sh
 import words as wd
 
-def generate_increasing_words(alph, lim_sup, lim_inf=0):
+def generate_increasing_words(alph, lim_sup, lim_inf=0, pivot=0):
     """
     Generator which takes an ordered alphabet
     and yields words in lexicographic order.
@@ -18,6 +18,50 @@ def generate_increasing_words(alph, lim_sup, lim_inf=0):
         yield current
         current = wd.next_lex(current,alph)
 
+def generate_canonical_words(alph, lim_sup, lim_inf=0):
+    """
+    Generator which takes an ordered alphabet and
+    yields canonical words in lexicographic order.
+    It starts in alph[0]^lim_inf and ends 
+    before surpassing length lim_sup
+    """
+    for n in range(lim_inf, lim_sup+1):
+        pivot = alph[0]
+        for w in gen_recursively(alph,pivot,n):
+            yield w
+
+def gen_recursively(alph,pivot,n):
+    """
+    Generates all possible words of length n 
+    which start with "pivot" and does so in the 
+    lexicographic order of the alphabet.
+
+    This is an auxiliary function to
+    "generate_canonical_words"
+    """ 
+    if pivot in alph:
+        for m in range(n,0,-1):
+            pivots = wd.enlengthen(pivot,m)
+            if m==n:
+                yield pivots
+            else:
+                pivot_index = alph.find(pivot)
+                new_pivot_index = pivot_index+1
+                new_pivot = alph[new_pivot_index] if new_pivot_index<len(alph) else alph+"0"
+                # this is designed so that (new_pivot in alph) is false whenever new_pivot_index exceeds len(alph)
+                for w in gen_recursively(alph,new_pivot,n-m):
+                    yield pivots+w
+    else:
+        for w in generate_increasing_words(alph,lim_sup=n,lim_inf=n):
+            yield w
+
+def generate_canonical_words_from_parikh(alph,v):
+    """
+    A generator which yields all possible canonical
+    words comprised by the symbols in a given
+    Parikh vector.
+    """
+    pass
 
 def to_dict(w1,w2,w3,l,m,b):
     data = {
@@ -70,6 +114,7 @@ def generate_shuffles_to_file(alph,N):
                 if len(w1)==len(w2) and wd.is_greater_lex(w1,w2,alph):
                     continue
                 gen3 = generate_increasing_words(alph,len(w1)+len(w2),lim_inf=len(w1)+len(w2))
+                #Acá tiene que haber una forma mejor que ésta de conseguir las mezclas de w1 y w2!
                 for w3 in gen3:
                     if not wd.is_canonical_word(w3,alph): #We don't want superfluous cases
                         continue

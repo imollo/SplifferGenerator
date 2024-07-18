@@ -154,3 +154,15 @@ def is_self_adjoint(w,alph=None):
     Requires binary alphabet.
     """
     return w==conjugate(w,alph)[::-1]
+
+def enlengthen(c,n):
+    """
+    Takes a character c and repeats it
+    n times to get a string. 
+    """
+    if n<0:
+        raise ValueError()
+    elif n==0:
+        return ""
+    else:
+        return c+enlengthen(c,n-1)

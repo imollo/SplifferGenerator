@@ -275,6 +275,14 @@ def filter_by_includedness(filename):
         return (not (w1 in w2)) and (not (w2 in w1))
     filter_by(filename,new_filename,check_not_included)
 
+def filter_by_prefix(filename):
+    new_filename = filename+"_prefix"
+    def check_if_prefix(thing):
+        w1 = thing["w1"]
+        w2 = thing["w2"]
+        return (wd.is_prefix(w1,w2))
+    filter_by(filename,new_filename,check_if_prefix)
+
 def filter_by_inexistence_of_leftmost_shuffle(filename):
     new_filename = filename+"_not_leftmost_shuffle"
     def check_there_is_no_leftmost_shuffle(thing):
@@ -335,6 +343,8 @@ def main(option, filename):
         filter_by_inexistence_of_leftmost_shuffle(filename)
     elif option == "leftmosts":
         find_leftmost_shuffles(filename)
+    elif option == "prefix":
+        filter_by_prefix(filename)
     else:
         raise ValueError
     
