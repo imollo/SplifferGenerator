@@ -1,10 +1,9 @@
 import json
-import sys
 
 import shuffle as sh
 import words as wd
 
-def generate_increasing_words(alph, lim_sup, lim_inf=0, pivot=0):
+def generate_increasing_words(alph, lim_sup, lim_inf=0):
     """
     Generator which takes an ordered alphabet
     and yields words in lexicographic order.
@@ -55,7 +54,7 @@ def gen_recursively(alph,pivot,n):
         for w in generate_increasing_words(alph,lim_sup=n,lim_inf=n):
             yield w
 
-def generate_canonical_words_from_parikh(alph,v):
+def generate_canonical_words_from_parikh(alph,p):
     """
     A generator which yields all possible canonical
     words comprised by the symbols in a given
@@ -220,14 +219,3 @@ def delete_duplicates(filename):
 
 def main(alph,N):
     generate_shuffles_to_file(alph,N)
-
-try:
-    main(sys.argv[1],int(sys.argv[2]))
-except BaseException as err:
-    print(
-        f"Usage: \npython3 {sys.argv[0]} <alph> <N>\n with:\n * <alph> a string of alphabet symbols \n * <N> the maximum length of the shuffling words to generate"
-    )
-    print(
-        "A file called 'shuffles_to_<N>_<alph>' will be generated with the results."
-    )
-    print(err)

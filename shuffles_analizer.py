@@ -1,7 +1,6 @@
 import json
 import ijson #Iterative json parser
 
-import sys
 import os
 
 import graphviz
@@ -43,8 +42,7 @@ def build_diligent_spliffers(filename):
 
     alph = find_alph_from_filename(filename)
 
-    json_data = retrieve_json_data(filename)
-    for thing in json_data:
+    for thing in retrieve_json_data(filename):
         try:
             w1 = thing["w1"]
             w2 = thing["w2"]

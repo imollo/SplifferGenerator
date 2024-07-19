@@ -166,3 +166,24 @@ def enlengthen(c,n):
         return ""
     else:
         return c+enlengthen(c,n-1)
+    
+def word_to_parikh(w, alph):
+    p = []
+    for c in alph:
+        p.append(w.count(c))
+    return p
+
+def is_canonical_parikh(p):
+    """
+    Given a vector, it returns True iff 
+    at least one canonical word has it
+    as a Parikh vector. 
+    """
+    l = [i for i in range(len(p)) if p[i]==0]
+    try:
+        min = l[0]
+    except IndexError:
+        return True
+    for j in range(len(l)):
+        l[j] = l[j]-min
+    return l==list(range(len(l)))
