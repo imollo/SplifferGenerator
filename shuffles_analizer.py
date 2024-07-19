@@ -1,4 +1,6 @@
 import json
+import ijson #Iterative json parser
+
 import sys
 import os
 
@@ -8,10 +10,33 @@ import words as wd
 import shuffle as sh
 import diligent_spliffer as dil
 
+"""
 def retrieve_json_data(filename):
         with open(filename,'r') as file:
             json_data = json.load(file)
         return json_data
+"""
+def retrieve_json_data(filename):
+    """
+    To parse the json data, we use ijson
+    instead of json, so that we are not 
+    loading a big (>3GB) json file in memory.
+    """
+    with open(filename, 'r') as f:
+        parser = ijson.items(f, 'item')
+        for item in parser:
+            yield item
+
+
+def lazy_analizer_test(filename):
+    counter = 0
+    with open(filename,'r') as file:
+        for row in file:
+            counter += 1
+    print(counter)
+
+
+
 
 def find_alph_from_filename(filename):
     """
@@ -49,46 +74,6 @@ def build_diligent_spliffers(filename):
             os.remove(new_file)
         except (IndexError,TypeError):
             continue
-
-
-def to_json_leftmost(w1,w2,w3,L):
-    d = {"w1":w1,"w2":w2,"w3":w3,"n":len(L),"p":L.__str__()}
-    json_str = json.dumps(d,indent=2)
-    return json_str
-
-def find_leftmost_shuffles(filename):
-    new_filename = filename+"_leftmost_shuffles"
-    json_data = retrieve_json_data(filename)
-    first_time = True
-
-    with open(new_filename,"w") as file:
-        file.write('[')
-        for thing in json_data:
-            try:
-                w1 = thing["w1"]
-                w2 = thing["w2"]
-                w3 = thing["w3"]
-                S = sh.all_possible_shuffles(w1,w2,w3)
-                L = []
-                for s1 in S:
-                    lefter = True
-                    for s2 in S:
-                        if not sh.is_lefter_than(s1,s2):
-                            lefter = False
-                            break
-                    if lefter:
-                        L.append([at.pos for at in s1.shuf()])
-                json_str = to_json_leftmost(w1,w2,w3,L)
-                if first_time:
-                    file.write("\n")
-                    first_time = False
-                else:
-                    file.write(",\n")
-                file.write(json_str)
-            except (IndexError,TypeError):
-               continue
-        file.write("\n]")
-
 
 def to_json_generators(w1,w2,w3,L):
     d = {"w1":w1,"w2":w2,"w3":w3,"p":str(L)}
@@ -145,32 +130,27 @@ def classify_by_primitive_generators(filename):
                     file.write(json_str)
         file.write('\n]')
     
-
 def filter_by(filename,new_filename,function):
     """
     Takes the <filename> of an existing json file, a <new_filename> and
     a boolean <function>. It filters <filename> by the value of <function>
     and dumps the filtered file onto <new_filename>.
+    Now lazy! 
     """
     filtered = []
 
-    print(f"Reading data from {filename}...",end="")
-    json_data = retrieve_json_data(filename)
-    print("Done.")
-
-    n = len(json_data)
-
     print("Starting the filtering process...",end="")
-    for thing in json_data:
+    total = 0
+    for thing in retrieve_json_data(filename):
         try:
             if function(thing):
                 filtered.append(thing)
+            total = total+1
         except BaseException:
-            n = n-1
             continue
     print("Done.")
     
-    filtered.insert(0,str(len(filtered))+" elements filtered out of "+str(n)+".")
+    filtered.insert(0,str(len(filtered))+" elements filtered out of "+str(total)+".")
     json_str = json.dumps(filtered,indent=2)
 
     print(f"Writing filtered data to {new_filename}...", end="")
@@ -282,39 +262,6 @@ def filter_by_prefix(filename):
         w2 = thing["w2"]
         return (wd.is_prefix(w1,w2))
     filter_by(filename,new_filename,check_if_prefix)
-
-def filter_by_inexistence_of_leftmost_shuffle(filename):
-    new_filename = filename+"_not_leftmost_shuffle"
-    def check_there_is_no_leftmost_shuffle(thing):
-        w1 = thing["w1"]
-        w2 = thing["w2"]
-        w3 = thing["w3"]
-        L = sh.all_possible_shuffles(w1,w2,w3)
-        s_min = None
-        for s1 in L:
-            is_candidate = True
-            for s2 in L:
-                if s1==s2:
-                    continue
-                if not sh.is_lefter_than(s1,s2):
-                    is_candidate = False
-                    break
-            if is_candidate:
-                s_min = s1
-                break
-            else:
-                continue
-        return s_min == None
-    filter_by(filename,new_filename,check_there_is_no_leftmost_shuffle)
-
-""" 
-def filter_by_amount_of_leftmost_shuffles(filename,n):
-    new_filename = filename + f"_at_least_{n}_leftmost"
-    def check_there_is_at_least_n_leftmost(thing):
-        m = thing["n"]
-        return m>=n
-    filter_by(filename,new_filename,check_there_is_at_least_n_leftmost)
-""" # Don't really need this actually: if the leftmost exists, it is unique
     
 def main(option, filename):
     if option == "counterexamples":
@@ -339,10 +286,6 @@ def main(option, filename):
         filter_by_input_inequality(filename)
     elif option == "primitives":
         classify_by_primitive_generators(filename)
-    elif option == "leftmost_inexistence":
-        filter_by_inexistence_of_leftmost_shuffle(filename)
-    elif option == "leftmosts":
-        find_leftmost_shuffles(filename)
     elif option == "prefix":
         filter_by_prefix(filename)
     else:
@@ -353,7 +296,7 @@ try:
     main(sys.argv[1], sys.argv[2])
 except BaseException as err:
     print(
-        f"Usage:\n python3 {sys.argv[0]} <option> <filename>\n with:\n *<option> can be 'diligent', 'counterexample', 'essential', 'palindrome', 'equality', 'inequality', 'included', 'primitives'\n *<filename> the name of a json file generated by shuffle_generator and present in this same folder."
+        f"Usage:\n python3 {sys.argv[0]} <option> <filename>\n with:\n *<option> can be 'diligent', 'counterexamples', 'essential', 'palindrome', 'equality', 'inequality', 'included', 'primitives'\n *<filename> the name of a json file generated by shuffle_generator and present in this same folder."
     )
     print(
         "If <option> is 'counterexamples' a file called '<filename>_counterexamples' will be generated with the results."
