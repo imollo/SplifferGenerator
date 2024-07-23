@@ -80,12 +80,18 @@ def is_greater_lex(w1,w2,alph):
                 continue
         return False
 
+def is_greater_or_equal_lex(w1,w2,alph):
+    return is_greater_lex(w1,w2,alph) or w1==w2
+
 def is_lesser_lex(w1,w2,alph):
     """
     Returns True iff <w1> is lexicographically lesser than <w2>
     under the ordered alphabet <alph>.
     """
     return is_greater_lex(w2,w1,alph)
+
+def is_lesser_or_equal_lex(w1,w2,alph):
+    return is_lesser_lex(w1,w2,alph) or w1==w2
 
 def next_lex(w,alph):
     """

@@ -17,12 +17,33 @@ def generate_increasing_words(alph, lim_sup, lim_inf=0):
         yield current
         current = wd.next_lex(current,alph)
 
+def generate_increasing_words_up_to(alph, final_w, init_w=""):
+    """
+    Generator which takes:
+    * an ordered alphabet
+    * an initial word init_w
+    * a final word final_w
+    and yields in lexicographical order all words between them,
+    including them.
+
+    If init_w is not specified, it starts with "alph[0]".
+    """
+    current = init_w if init_w != "" else alph[0]
+    while wd.is_lesser_or_equal_lex(current,final_w,alph):
+        yield current
+        current = wd.next_lex(current,alph)
+
 def generate_canonical_words(alph, lim_sup, lim_inf=0):
     """
     Generator which takes an ordered alphabet and
-    yields canonical words in lexicographic order.
+    yields all canonical words in a range, in
+    "roughly" lexicographic order.
     It starts in alph[0]^lim_inf and ends 
-    before surpassing length lim_sup
+    before surpassing length lim_sup.
+
+    It REQUIRES |alph|>1.
+    Otherwise it's very easy to do and I don't
+    want to spend time accounting for that case.
     """
     for n in range(lim_inf, lim_sup+1):
         pivot = alph[0]
@@ -32,8 +53,8 @@ def generate_canonical_words(alph, lim_sup, lim_inf=0):
 def gen_recursively(alph,pivot,n):
     """
     Generates all possible words of length n 
-    which start with "pivot" and does so in the 
-    lexicographic order of the alphabet.
+    which start with "pivot" and does so in a 
+    "roughly" lexicographic order of the alphabet.
 
     This is an auxiliary function to
     "generate_canonical_words"
@@ -51,7 +72,9 @@ def gen_recursively(alph,pivot,n):
                 for w in gen_recursively(alph,new_pivot,n-m):
                     yield pivots+w
     else:
-        for w in generate_increasing_words(alph,lim_sup=n,lim_inf=n):
+        init_w = wd.enlengthen(alph[0],n)
+        final_w = alph[-2]+wd.enlengthen(alph[-1],n-1)
+        for w in generate_increasing_words_up_to(alph,final_w,init_w):
             yield w
 
 def generate_canonical_words_from_parikh(alph,p):
