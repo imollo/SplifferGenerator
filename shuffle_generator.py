@@ -77,13 +77,68 @@ def gen_recursively(alph,pivot,n):
         for w in generate_increasing_words_up_to(alph,final_w,init_w):
             yield w
 
+def generate_words_from_parikh(alph,p):
+    """
+    A generator which yields ALL possible words
+    comprised by the symbols in a given Parikh vector.
+    """
+    s = sum(p)
+    if s==0:
+        yield ""
+    else:
+        for c in alph:
+            i = alph.find(c)
+            if p[i]>0:
+                new_p = p.copy()
+                new_p[i] = new_p[i]-1
+                for w in generate_words_from_parikh(alph,new_p):
+                    yield c+w
+
+
 def generate_canonical_words_from_parikh(alph,p):
     """
-    A generator which yields all possible canonical
+    A generator which yields all possible CANONICAL
     words comprised by the symbols in a given
     Parikh vector.
+
+    It REQUIRES the truthness of (wd.is_canonical_parikh(p))
     """
-    pass
+    pivot = alph[0]
+    for w in generate_canonical_words_from_parikh_recursively(alph,p,pivot):
+        yield w
+
+def generate_canonical_words_from_parikh_recursively(alph,p,pivot):
+    """
+    Generates all possible words with a given parikh
+    vector p which start with "pivot" and does so in a 
+    "roughly" lexicographic order of the alphabet.
+
+    This is an auxiliary function to
+    "generate_canonical_words_from_parikh"
+    """ 
+    if pivot in alph:
+        
+        i = alph.find(pivot)
+        new_pivot_index = i+1
+        new_pivot = alph[new_pivot_index] if new_pivot_index<len(alph) else alph+"0"
+        # this is designed so that (new_pivot in alph) is false whenever new_pivot_index exceeds len(alph)
+        
+        if p[i]>0:
+            for keep in range(p[i],0,-1):
+                pivots = wd.enlengthen(pivot,keep)
+
+                new_p = p.copy()
+                left = p[i]-keep
+                new_p[i] = left
+
+                for w in generate_canonical_words_from_parikh_recursively(alph,new_p,new_pivot):
+                    yield pivots+w
+        elif p[i]==0:
+                for w in generate_canonical_words_from_parikh_recursively(alph,p,new_pivot):
+                    yield w
+    else:
+        for w in generate_words_from_parikh(alph,p):
+            yield w
 
 def to_dict(w1,w2,w3,l,m,b):
     data = {

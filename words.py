@@ -193,3 +193,13 @@ def is_canonical_parikh(p):
     for j in range(len(l)):
         l[j] = l[j]-min
     return l==list(range(len(l)))
+
+def parikh_to_min_word(p,alph):
+    """
+    It REQUIRES |alph|=|p|.
+    It returns the minimal lexicographic 
+    word w such that word_to_parikh(w)==p.
+    """
+    res = ""
+    for i in range(len(alph)):
+        res = res+enlengthen(alph[i],p[i])
