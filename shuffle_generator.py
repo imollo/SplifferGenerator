@@ -1,4 +1,7 @@
+import os
+
 import json
+import shutil
 
 import shuffle as sh
 import words as wd
@@ -112,6 +115,9 @@ def generate_canonical_words_from_parikh(alph,p):
 def generate_canonical_words_from_parikh_recursively(alph,p,pivot=0):
     """
     An auxiliary function for generate_canonical_words_from_parikh.
+    It takes the corrected alphabet and parikh vectors
+    (because of the canonicity hypothesis on p, it can be assumed
+    that it has an irrelevant tail of zeroes).
 
     It adds characters in the correct order to guarantee canonicity,
     and then makes use of generate_words_from_parikh to build the
@@ -228,36 +234,35 @@ def add_shuffles_and_append(filename,alph,n,N):
     """
     new_filename = "shuffles_to_"+str(N)+"_"+alph
 
-    print(f"Reading sourcefile {filename}...", end=" ")
-    with open(filename,'r') as file:
-        initial_data = file.read()
-        initial_data = initial_data[:-2] # we remove "\n]"" at the end of file 
-    print("Done.")
+    shutil.copy(filename, new_filename)
+
+    with open(new_filename,'rb+') as file:
+        file.seek(-2,os.SEEK_END)
+        file.truncate()
 
     first_time = True
     lenw1 = 1
 
     print(f"Writing on new file {new_filename}...")
-    with open(new_filename,'w') as file:
-        file.write(initial_data)
+    with open(new_filename,'a') as file:
         file.write(",\n")
-        print(f"Data from {filename} successfully copied.")
         print("Starting to generate shuffles.")
-
         
         gen1 = generate_increasing_words(alph,N,lim_inf=1)
         for w1 in gen1:
             if len(w1)>lenw1:
                 print(f"Generating words of length {len(w1)} for w1.")
                 lenw1=len(w1)
-            gen2 = generate_increasing_words(alph,N,lim_inf=max(n,len(w1)))
+            N_word = wd.enlengthen(alph[-1],N)
+            n_word = wd.enlengthen(alph[0],n+1)
+            min_word = n_word if wd.is_greater_lex(n_word,w1,alph) else w1  
+            gen2 = generate_increasing_words_up_to(alph,N_word,init_w=min_word)
             for w2 in gen2:
-                if len(w1)==len(w2) and wd.is_greater_lex(w1,w2,alph):
+                p = wd.word_to_parikh(w1+w2,alph)
+                if not wd.is_canonical_parikh(p):
                     continue
-                gen3 = generate_increasing_words(alph,len(w1)+len(w2),lim_inf=len(w1)+len(w2))
+                gen3 = generate_canonical_words_from_parikh(alph,p)
                 for w3 in gen3:
-                    if not wd.is_canonical_word(w3,alph):
-                        continue
                     try:
                         L = sh.all_possible_shuffles(w1,w2,w3,alph=alph)
                         l = len(L)
