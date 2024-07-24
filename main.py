@@ -3,14 +3,6 @@ import sys
 import shuffles_analizer as an
 import shuffle_generator as gen
 
-def main(option, filename=None, analysis_type=None):
-    if option == "analize":
-        an.main(analysis_type,filename)
-    elif option == "diligent":
-        an.main(option,filename)
-    elif option == "generate":
-        gen.main()
-
 try:
     option = sys.argv[1]
     if option == "analize":

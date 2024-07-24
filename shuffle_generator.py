@@ -47,10 +47,10 @@ def generate_canonical_words(alph, lim_sup, lim_inf=0):
     """
     for n in range(lim_inf, lim_sup+1):
         pivot = alph[0]
-        for w in gen_recursively(alph,pivot,n):
+        for w in generate_canonical_words_recursively(alph,pivot,n):
             yield w
 
-def gen_recursively(alph,pivot,n):
+def generate_canonical_words_recursively(alph,pivot,n):
     """
     Generates all possible words of length n 
     which start with "pivot" and does so in a 
@@ -69,7 +69,7 @@ def gen_recursively(alph,pivot,n):
                 new_pivot_index = pivot_index+1
                 new_pivot = alph[new_pivot_index] if new_pivot_index<len(alph) else alph+"0"
                 # this is designed so that (new_pivot in alph) is false whenever new_pivot_index exceeds len(alph)
-                for w in gen_recursively(alph,new_pivot,n-m):
+                for w in generate_canonical_words_recursively(alph,new_pivot,n-m):
                     yield pivots+w
     else:
         init_w = wd.enlengthen(alph[0],n)
@@ -103,42 +103,37 @@ def generate_canonical_words_from_parikh(alph,p):
 
     It REQUIRES the truthness of (wd.is_canonical_parikh(p))
     """
-    pivot = alph[0]
-    for w in generate_canonical_words_from_parikh_recursively(alph,p,pivot):
+    n = p.index(0) if 0 in p else len(p)
+    new_alph = alph[:n]
+    new_p = p[:n]
+    for w in generate_canonical_words_from_parikh_recursively(new_alph,new_p):
         yield w
 
-def generate_canonical_words_from_parikh_recursively(alph,p,pivot):
+def generate_canonical_words_from_parikh_recursively(alph,p,pivot=0):
     """
-    Generates all possible words with a given parikh
-    vector p which start with "pivot" and does so in a 
-    "roughly" lexicographic order of the alphabet.
+    An auxiliary function for generate_canonical_words_from_parikh.
 
-    This is an auxiliary function to
-    "generate_canonical_words_from_parikh"
-    """ 
-    if pivot in alph:
-        
-        i = alph.find(pivot)
-        new_pivot_index = i+1
-        new_pivot = alph[new_pivot_index] if new_pivot_index<len(alph) else alph+"0"
-        # this is designed so that (new_pivot in alph) is false whenever new_pivot_index exceeds len(alph)
-        
-        if p[i]>0:
-            for keep in range(p[i],0,-1):
-                pivots = wd.enlengthen(pivot,keep)
-
+    It adds characters in the correct order to guarantee canonicity,
+    and then makes use of generate_words_from_parikh to build the
+    word's tail.
+    """
+    if sum(p)==0:
+        yield ""
+    elif pivot>=len(p):
+        for i in range(len(p)-1):
+            if p[i]>0:
                 new_p = p.copy()
-                left = p[i]-keep
-                new_p[i] = left
-
-                for w in generate_canonical_words_from_parikh_recursively(alph,new_p,new_pivot):
-                    yield pivots+w
-        elif p[i]==0:
-                for w in generate_canonical_words_from_parikh_recursively(alph,p,new_pivot):
-                    yield w
+                new_p[i] = new_p[i]-1
+                for w in generate_words_from_parikh(alph,new_p):
+                    yield alph[i]+w
     else:
-        for w in generate_words_from_parikh(alph,p):
-            yield w
+        for keep in range(p[pivot],0,-1):
+            new_p = p.copy()
+            new_p[pivot] = new_p[pivot]-keep
+            pivots = wd.enlengthen(alph[pivot],keep)
+            for w in generate_canonical_words_from_parikh_recursively(alph,new_p,pivot=pivot+1):
+                yield pivots+w
+
 
 def to_dict(w1,w2,w3,l,m,b):
     data = {
@@ -186,15 +181,19 @@ def generate_shuffles_to_file(alph,N):
             if len(w1)>lenw1:
                 print(f"Generating words of length {len(w1)} for w1.")
                 lenw1=len(w1)
-            gen2 = generate_increasing_words(alph,N,lim_inf=len(w1))
+            last_symbols = wd.enlengthen(alph[-1],N-1)
+            if w1[0] != alph[0]:
+                gen2 = generate_increasing_words_up_to(alph,alph[0]+last_symbols,init_w=w1)
+                #w3 will be canonical, so if w1 does not start with alph[0] then w2 does
+                #maybe there's a way to generalize this to also guarantee parikh(w1+w2) is canonical-parikh?
+            else:    
+                gen2 = generate_increasing_words_up_to(alph,alph[-1]+last_symbols,init_w=w1)
             for w2 in gen2:
-                if len(w1)==len(w2) and wd.is_greater_lex(w1,w2,alph):
+                p = wd.word_to_parikh(w1+w2,alph)
+                if not wd.is_canonical_parikh(p):
                     continue
-                gen3 = generate_increasing_words(alph,len(w1)+len(w2),lim_inf=len(w1)+len(w2))
-                #Acá tiene que haber una forma mejor que ésta de conseguir las mezclas de w1 y w2!
+                gen3 = generate_canonical_words_from_parikh(alph,p) #remember that this requires wd.is_canonical_parikh(p)
                 for w3 in gen3:
-                    if not wd.is_canonical_word(w3,alph): #We don't want superfluous cases
-                        continue
                     try:
                         L = sh.all_possible_shuffles(w1,w2,w3,alph=alph)
                         l = len(L)
