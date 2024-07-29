@@ -20,6 +20,17 @@ def retrieve_json_data(filename):
         for item in parser:
             yield item
 
+def test_give_last_thing(filename):
+    with open(filename, 'r') as f:
+        parser = ijson.items(f, 'item')
+        last_item = None
+        try:
+            for item in parser:
+                last_item = item
+        except ijson.common.IncompleteJSONError:
+            print(last_item)
+    print(last_item)
+
 def find_alph_from_filename(filename):
     """
     Esto es horrible, lo hago para encontrar el alfabeto a partir del filename
@@ -29,11 +40,11 @@ def find_alph_from_filename(filename):
     alph=""
     l = filename.split("_")
     for i in range(len(l)):
-        if l[i].isalnum():
+        if l[i].isdigit():
             alph = l[i+1]
             break
     return alph
-        
+
 def build_diligent_spliffers(filename):
     folder_name = filename+"_diligent_spliffers"
 
@@ -198,23 +209,28 @@ def filter_by_conjugacy(filename):
         w2 = thing["w2"]
         w3 = thing["w3"]
         alph = find_alph_from_filename(filename)
-        res = wd.is_self_adjoint(w1,alph) and wd.is_self_adjoint(w2,alph) and wd.is_self_adjoint(w3,alph)
-        return res
+        plah = wd.find_appropriate_permutation(w3,alph=alph)
+        if plah==None:
+            return False
+        else:
+            res = wd.is_self_adjoint(w1,alph=alph,perm=plah) and wd.is_self_adjoint(w2,alph=alph,perm=plah) and wd.is_self_adjoint(w3,alph=alph,perm=plah)
+            return res
     filter_by(filename,new_filename,check_conjugacy)
 
 def filter_by_unconjugacy(filename):
-    """"
-    Requires binary alphabet.
-    """
     new_filename = filename+"_not_conjugacy"
-    def check_unconjugacy(thing):
+    def check_non_conjugacy(thing):
         w1 = thing["w1"]
         w2 = thing["w2"]
         w3 = thing["w3"]
         alph = find_alph_from_filename(filename)
-        res = not (wd.is_self_adjoint(w1,alph) and wd.is_self_adjoint(w2,alph) and wd.is_self_adjoint(w3,alph))
-        return res
-    filter_by(filename,new_filename,check_unconjugacy)
+        plah = wd.find_appropriate_permutation(w3,alph=alph)
+        if plah==None:
+            return True
+        else:
+            res = wd.is_self_adjoint(w1,alph=alph,perm=plah) and wd.is_self_adjoint(w2,alph=alph,perm=plah) and wd.is_self_adjoint(w3,alph=alph,perm=plah)
+            return not res
+    filter_by(filename,new_filename,check_non_conjugacy)
 
 def filter_by_input_equality(filename):
     new_filename = filename+"_equals"

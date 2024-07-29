@@ -37,6 +37,11 @@ def quick_sort(w):
         w_great = [c for c in w if c>h]
         return quick_sort(w_less)+w_mid+quick_sort(w_great)
 
+def is_permutation_of(u,v):
+    u2 = quick_sort(u)
+    v2 = quick_sort(v)
+    return u2 == v2
+
 def nub(w):
     """
     Given a word w, it returns the minimal
@@ -134,32 +139,55 @@ def is_canonical_word(w,alph):
 def is_palindrome(w):
     return w==w[::-1]
 
-def conjugate(w,alph=None):
+def apply_permutation(c,alph,perm):
     """
-    Requires binary alphabet.
+    Takes a letter c on alph and a permutation on alph
+    and applies the permutation to c.
+
+    The permutation is represented as a permutation of 
+    alph.
+    """
+    i = alph.find(c)
+    return perm[i]
+
+def conjugate(w,alph=None,perm=None):
+    """
+    perm is the permutation function on the alphabet.
+    It's represented as a permutation of alph
+    (considered as a word).
     """
     if alph==None:
-        alph_1=nub(w)
-        if len(alph_1)!=2:
-            raise ValueError(
-                "Need a two-symbol alphabet."
-            )
-        else:
-            alph = alph_1
-
+        alph = nub(w)
+    if perm==None:
+        perm = alph[1:]+alph[0]
     w2 = ""
-    for i in range(len(w)):
-        if w[i] == alph[0]:
-            w2 = w2+alph[1]
-        else:
-            w2 = w2+alph[0]
-    return w2
+    for c in w:
+        w2 = w2 + apply_permutation(c,alph,perm)
+    return w2[::-1]
 
-def is_self_adjoint(w,alph=None):
+def is_self_adjoint(w,alph=None,perm=None):
+    return w==conjugate(w,alph,perm)
+
+def find_appropriate_permutation(w, alph=None):
     """
-    Requires binary alphabet.
+    Given a word w in alph, it returns the only permutation
+    of alph (if it exists) such that w is equal to its 
+    conjugate under that permutation.
     """
-    return w==conjugate(w,alph)[::-1]
+    if alph==None:
+        alph = nub(w)
+    plah = ""
+    for c in alph:
+        i = w.find(c)
+        if i == -1:
+            plah = plah+c
+        else:
+            anti_i = len(w)-i-1
+            plah = plah+w[anti_i]
+    if is_permutation_of(plah,alph):
+        return plah
+    else:
+        return None
 
 def enlengthen(c,n):
     """
