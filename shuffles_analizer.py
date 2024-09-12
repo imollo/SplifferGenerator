@@ -122,6 +122,7 @@ def classify_by_primitive_generators(filename):
                     file.write(json_str)
         file.write('\n]')
     
+
 def filter_by(filename,new_filename,function):
     """
     Takes the <filename> of an existing json file, a <new_filename> and
@@ -260,6 +261,18 @@ def filter_by_prefix(filename):
         return (wd.is_prefix(w1,w2))
     filter_by(filename,new_filename,check_if_prefix)
     
+def filter_by_commutative_classes(filename):
+    """
+    A filter which looks at the number of commutative classes
+    in each thing["ways_to_commute"] and keeps only the ones
+    with three classes or more.
+    """
+    new_filename = filename+"_too_many_classes"
+    def check_number_of_classes(thing):
+        n_classes = len(thing["ways_to_commute"])
+        return n_classes>2
+    filter_by(filename,new_filename,check_number_of_classes)
+
 def main(option, filename):
     if option == "counterexamples":
         filter_counterexamples(filename)
@@ -285,5 +298,7 @@ def main(option, filename):
         classify_by_primitive_generators(filename)
     elif option == "prefix":
         filter_by_prefix(filename)
+    elif option == "too_many_classes":
+        filter_by_commutative_classes(filename)
     else:
         raise ValueError

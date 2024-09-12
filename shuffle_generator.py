@@ -3,8 +3,10 @@ import os
 import json
 import shutil
 
-import shuffle as sh
 import words as wd
+import shuffle as sh
+
+from shuffles_analizer import retrieve_json_data
 
 def generate_increasing_words(alph, lim_sup, lim_inf=0):
     """
@@ -104,7 +106,7 @@ def generate_canonical_words_from_parikh(alph,p):
     words comprised by the symbols in a given
     Parikh vector.
 
-    It REQUIRES the truthness of (wd.is_canonical_parikh(p))
+    It REQUIRES the truthfulness of (wd.is_canonical_parikh(p))
     """
     n = p.index(0) if 0 in p else len(p)
     new_alph = alph[:n]
@@ -284,6 +286,57 @@ def add_shuffles_and_append(filename,alph,n,N):
                         continue
         file.write("\n]")
         print("Generation complete.")
+
+def complete_ways_to_commute_in_thing(thing,rule):
+    """
+    Completes the "way_to_commute" parameter in a given thing
+    by using a particular rule of commutation.
+    The rule must be a function which returns a list of all
+    possible "commutations" of a shuffle, for a given criteria
+    of what a commutation is.
+    """
+    w1 = thing["w1"]
+    w2 = thing["w2"]
+    w3 = thing["w3"]
+    l  = thing["ways_to_shuffle"]
+    b  = thing["commuting_is_enough"]
+
+    to_visit = sh.all_possible_shuffles(w1,w2,w3)
+    ways_to_commute = []
+    while(len(to_visit)>0):
+        S = to_visit.pop()
+        comm = rule(S)
+        ways_to_commute.append(len(comm))
+        for T in comm:
+            if T in to_visit:
+                to_visit.remove(T)
+    
+    new_thing = to_json(w1,w2,w3,l,ways_to_commute,b)
+    return new_thing
+
+def complete_ways_to_commute_in_file(filename):
+    """
+    Takes the <filename> of an existing json file, and completes
+    the "ways_to_commute" variable of each single shuffle entry
+    to a complete description of the equivalence classes under
+    simple commutativity.
+    """
+    new_filename = filename+"_complete_class"
+    with open(new_filename,"w") as file:
+        file.write('[')
+        first_time = True
+        for thing in retrieve_json_data(filename):
+            try:
+                new_thing = complete_ways_to_commute_in_thing(thing,sh.all_possible_commutations)
+                if first_time:
+                    file.write("\n")
+                    first_time = False
+                else:
+                    file.write(",\n")
+                file.write(new_thing)
+            except BaseException:
+                continue
+        file.write('\n]')
 
 def append_files(filename1,filename2,new_filename):
     """

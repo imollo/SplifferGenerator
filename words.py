@@ -144,8 +144,8 @@ def apply_permutation(c,alph,perm):
     Takes a letter c on alph and a permutation on alph
     and applies the permutation to c.
 
-    The permutation is represented as a permutation of 
-    alph.
+    The permutation of alph is represented as literally
+    a permutation of alph (as a string).
     """
     i = alph.find(c)
     return perm[i]
@@ -154,7 +154,7 @@ def conjugate(w,alph=None,perm=None):
     """
     perm is the permutation function on the alphabet.
     It's represented as a permutation of alph
-    (considered as a word).
+    (considered as a string).
     """
     if alph==None:
         alph = nub(w)
