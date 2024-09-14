@@ -30,6 +30,12 @@ class Atom:
     
     def is_right_atom(self):
         return self.pos == 'r'
+    
+    def flip(self):
+        if self.pos == "l":
+            return Atom(self.ch,"r")
+        else:
+            return Atom(self.ch,"l")
 
     @staticmethod
     def concatenate(L):
@@ -163,21 +169,20 @@ class Shuffle:
         b2 = self._v[2]==other._v[2]
         b3 = (self._v[0]=="" or self._v[1]=="")
         return (b0 and b1 and b2 and b3)
+    
+    def concatenate(self,other):
+        self._s += other._s
+        self._v = Atom.concatenate(self._s)
 
-"""  # I think this works but I didn't need it    
-     def pop_first(self):
-        if len(self._s)==0:
-            raise IndexError(
-                "shuffle is empty"
-            )
-        p = self._s[0].pos
-        del(self._s[0])
-        if p in ['l','L']:
-            self._v[0] = self._v[0][1:]
-        elif p in ['r','R']:
-            self._v[1] = self._v[1][1:]
-        self._v[2] = self._v[2][1:]
- """
+    def flip(self):
+        """
+        Returns a Shuffle with the input tapes flipped.
+        """
+        F = Shuffle()
+        for at in self._s:
+            F.mix_in(at.flip())
+        return F
+
 
 class ShuffleError(BaseException):
     pass
@@ -275,6 +280,36 @@ def all_possible_commutations(S):
         if T not in visited:
             visited.append(T)
             L = all_simple_commutations(T)
+            to_visit.extend(L)
+    return visited
+
+def all_simple_chain_commutations(S):
+    res = [S]
+    for c0 in range(0,len(S)):
+        l = ""
+        r = ""
+        for i in range(c0,len(S)):
+            if S.shuf()[i].is_left_atom():
+                l += S.shuf()[i].ch
+            else:
+                r += S.shuf()[i].ch 
+            if l==r:
+                T = S[0:c0]
+                T.concatenate(S[c0:i+1].flip())
+                T.concatenate(S[i+1:len(S)])
+                res.append(T)
+    return res
+
+
+
+def all_possible_chain_commutations(S):
+    to_visit = [S]
+    visited = []
+    while len(to_visit)>0:
+        T = to_visit.pop()
+        if T not in visited:
+            visited.append(T)
+            L = all_simple_chain_commutations(T)
             to_visit.extend(L)
     return visited
 

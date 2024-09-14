@@ -10,7 +10,7 @@ import shuffle as sh
 import diligent_spliffer as dil
 
 from fastDamerauLevenshtein import damerauLevenshtein
-#fast implementation of the edit distance
+#fast implementation of the edit distance with transposition
 
 def retrieve_json_data(filename):
     """
@@ -288,8 +288,25 @@ def filter_by_commutative_classes(filename):
     """
     new_filename = filename+"_too_many_classes"
     def check_number_of_classes(thing):
-        n_classes = len(thing["ways_to_commute"])
+        if "ways_to_commute" in thing.keys():
+            n_classes = len(thing["ways_to_commute"])
+        else:
+            n_classes = thing["classes"]
         return n_classes>2
+    filter_by(filename,new_filename,check_number_of_classes)
+
+def filter_by_chain_classes(filename,n):
+    """
+    A filter which looks at the number of chain-commutative classes
+    of each tuple and determines whether there is n classes or more.
+    """
+    new_filename = filename+"_at_least_"+str(n)+"_classes"
+    def check_number_of_classes(thing):
+        if "ways_to_commute" in thing.keys():
+            n_classes = len(thing["ways_to_commute"])
+        else:
+            n_classes = thing["classes"]
+        return n_classes>=n
     filter_by(filename,new_filename,check_number_of_classes)
 
 def main(option, filename):
@@ -319,6 +336,10 @@ def main(option, filename):
         filter_by_prefix(filename)
     elif option == "too_many_classes":
         filter_by_commutative_classes(filename)
+    elif option == "too_many_chain_classes_2":
+        filter_by_chain_classes(filename,2)
+    elif option == "too_many_chain_classes_3":
+        filter_by_chain_classes(filename,3)
     elif option == "damerau_levenshtein":
         print(calculate_edit_distance(filename))
     else:

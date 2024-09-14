@@ -287,7 +287,23 @@ def add_shuffles_and_append(filename,alph,n,N):
         file.write("\n]")
         print("Generation complete.")
 
-def complete_ways_to_commute_in_thing(thing,rule):
+def to_dict_with_classes(w1,w2,w3,s,l,n):
+    data = {
+        'w1': w1,
+        'w2': w2,
+        'w3': w3,
+        'shuffs':s,
+        'comms':l,
+        'classes':n
+    }
+    return data
+
+def to_json_with_classes(w1,w2,w3,s,l,n):
+    d = to_dict_with_classes(w1,w2,w3,s,l,n)
+    json_str = json.dumps(d,indent=2)
+    return json_str
+
+def complete_thing_with_classes(thing,rule):
     """
     Completes the "way_to_commute" parameter in a given thing
     by using a particular rule of commutation.
@@ -298,8 +314,10 @@ def complete_ways_to_commute_in_thing(thing,rule):
     w1 = thing["w1"]
     w2 = thing["w2"]
     w3 = thing["w3"]
-    l  = thing["ways_to_shuffle"]
-    b  = thing["commuting_is_enough"]
+    if "ways_to_shuffle" in thing.keys():
+        s  = thing["ways_to_shuffle"]
+    else:
+        s = thing["shuffs"]
 
     to_visit = sh.all_possible_shuffles(w1,w2,w3)
     ways_to_commute = []
@@ -311,23 +329,23 @@ def complete_ways_to_commute_in_thing(thing,rule):
             if T in to_visit:
                 to_visit.remove(T)
     
-    new_thing = to_json(w1,w2,w3,l,ways_to_commute,b)
+    n_classes = len(ways_to_commute)
+    new_thing = to_json_with_classes(w1,w2,w3,s,ways_to_commute,n_classes)
     return new_thing
 
-def complete_ways_to_commute_in_file(filename):
+def complete_file_with_classes(filename,new_filename,rule):
     """
     Takes the <filename> of an existing json file, and completes
     the "ways_to_commute" variable of each single shuffle entry
     to a complete description of the equivalence classes under
-    simple commutativity.
+    a given rule.
     """
-    new_filename = filename+"_complete_class"
     with open(new_filename,"w") as file:
         file.write('[')
         first_time = True
         for thing in retrieve_json_data(filename):
             try:
-                new_thing = complete_ways_to_commute_in_thing(thing,sh.all_possible_commutations)
+                new_thing = complete_thing_with_classes(thing,rule)
                 if first_time:
                     file.write("\n")
                     first_time = False
@@ -337,6 +355,26 @@ def complete_ways_to_commute_in_file(filename):
             except BaseException:
                 continue
         file.write('\n]')
+
+def complete_file_with_ways_to_commute(filename):
+    """
+    Takes the <filename> of an existing json file, and completes
+    the "ways_to_commute" variable of each single shuffle entry
+    to a complete description of the equivalence classes under
+    simple commutativity.
+    """
+    new_filename = filename+"_comm_classes"
+    complete_file_with_classes(filename,new_filename,sh.all_possible_chain_commutations)
+
+def complete_file_with_ways_to_chain_commute(filename):
+    """
+    Takes the <filename> of an existing json file, and completes
+    the "ways_to_commute" variable of each single shuffle entry
+    to a complete description of the equivalence classes under
+    chain commutativity.
+    """
+    new_filename = filename+"_chain_classes"
+    complete_file_with_classes(filename,new_filename,sh.all_possible_chain_commutations)
 
 def append_files(filename1,filename2,new_filename):
     """
