@@ -9,7 +9,7 @@ import words as wd
 import shuffle as sh
 import diligent_spliffer as dil
 
-from fastDamerauLevenshtein import damerauLevenshtein
+#from fastDamerauLevenshtein import damerauLevenshtein
 #fast implementation of the edit distance with transposition
 
 def retrieve_json_data(filename):
@@ -126,19 +126,19 @@ def classify_by_primitive_generators(filename):
         file.write('\n]')
     
 
-def calculate_edit_distance(filename):
-    n = 0
-    res = 0
-    for thing in retrieve_json_data(filename):
-        try:
-            w1 = thing["w1"]
-            w2 = thing["w2"]
-            d = damerauLevenshtein(w1,w2,similarity=False)
-            res = (res*n+d)/(n+1)
-            n = n+1
-        except BaseException:
-            continue
-    return res
+# def calculate_edit_distance(filename):
+#     n = 0
+#     res = 0
+#     for thing in retrieve_json_data(filename):
+#         try:
+#             w1 = thing["w1"]
+#             w2 = thing["w2"]
+#             d = damerauLevenshtein(w1,w2,similarity=False)
+#             res = (res*n+d)/(n+1)
+#             n = n+1
+#         except BaseException:
+#             continue
+#     return res
 
     
 
@@ -340,7 +340,7 @@ def main(option, filename):
         filter_by_chain_classes(filename,2)
     elif option == "too_many_chain_classes_3":
         filter_by_chain_classes(filename,3)
-    elif option == "damerau_levenshtein":
-        print(calculate_edit_distance(filename))
+#    elif option == "damerau_levenshtein":
+#        print(calculate_edit_distance(filename))
     else:
         raise ValueError

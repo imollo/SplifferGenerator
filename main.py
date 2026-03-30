@@ -10,7 +10,7 @@ try:
     elif option == "diligent":
         an.main(option,sys.argv[2])
     elif option == "generate":
-        gen.main(sys.argv[2],sys.argv[3])
+        gen.main(sys.argv[2],int(sys.argv[3]))
 
 except BaseException as err:
     print(
